@@ -1,6 +1,9 @@
 %lex
 %%
 
+/* Skip spaces and empty lines */
+[ \t\n\r]           ;
+
 /* Lexical grammar */
 /* ARITHMETIC_OP */
 /* L1 */
@@ -21,6 +24,14 @@
 ">" { return "GT"; }
 ">=" { return "GTE"; }
 
+/* BOOLEAN_OP */
+/* L1 */
+"||" { return "BOOLEAN_OR"; }
+/* L2 */
+"&&" { return "BOOLEAN_AND"; }
+/* L3 */
+"!" { return "BOOLEAN_NOT"; }
+
 /* BITWISE_OP */
 /* L1 */
 "|" { return "BITWISE_OR"; }
@@ -34,24 +45,9 @@
 /* L5 */
 "~" { return "BITWISE_NOT"; }
 
-/* BOOLEAN_OP */
-/* L1 */
-"||" { return "BOOLEAN_OR"; }
-/* L2 */
-"&&" { return "BOOLEAN_AND"; }
-/* L3 */
-"!" { return "BOOLEAN_NOT"; }
-
 /* ASSIGNMENT_OP */
 /* L1 */
 "=" { return "ASSIGN"; }
-
-/* TYPE */
-int { return "INT"; }
-float { return "FLOAT"; }
-string { return "STRING"; }
-bool { return "BOOL"; }
-[A-z0-9]+ { return "ID"; }
 
 /* CONST */
 [0-9]+\.[0-9]+ { return "CONST_FLOAT"; }
@@ -82,8 +78,14 @@ construct { return "CONSTRUCTOR"; }
 destruct { return "DESTRUCTOR"; }
 void { return "VOID"; }
 
-/* Skip special characters */
-(\n|\t|\s|.) {}
+/* TYPE */
+int { return "INT"; }
+float { return "FLOAT"; }
+string { return "STRING"; }
+bool { return "BOOL"; }
+[A-z0-9]+ { return "ID"; }
+
+. { return "INVALID"; }
 
 /lex
 
