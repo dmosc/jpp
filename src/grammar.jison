@@ -263,7 +263,7 @@ expression:
 
 expression_1: /* empty */
     |
-    ID assignment_op_l1 expression;
+    assignment_op_l1 expression;
 
 expression_l1:
     expression_l2 |

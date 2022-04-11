@@ -1,1 +1,4 @@
-int b, c = 1;
+int b = 45, c = 1, e;
+float f1, f2, f3;
+int w = 1 - 5 * (45 + 2);
+int arr[12], arr1[10][10];
