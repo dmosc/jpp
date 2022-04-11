@@ -2,90 +2,93 @@
 %%
 
 /* Skip spaces and empty lines */
-[ \t\n\r]           ;
+\s           ;
+[\t\n\r]          ;
 
 /* Lexical grammar */
 /* ARITHMETIC_OP */
 /* L1 */
-"+" { return "PLUS"; }
-"-" { return "MINUS"; }
+"+"             { return "PLUS"; }
+"-"             { return "MINUS"; }
 /* L2 */
-"*" { return "MULTIPLICATION"; }
-"/" { return "DIVISION"; }
-"%" { return "MODULO"; }
+"*"             { return "MULTIPLICATION"; }
+"/"             { return "DIVISION"; }
+"%"             { return "MODULO"; }
 
 /* RELATIONAL_OP */
 /* L1 */
-"==" { return "EQUALS"; }
-"!=" { return "NOT_EQUALS"; }
+"=="            { return "EQUALS"; }
+"!="            { return "NOT_EQUALS"; }
 /* L2 */
-"<" { return "LT"; }
-"<=" { return "LTE"; }
-">" { return "GT"; }
-">=" { return "GTE"; }
+"<"             { return "LT"; }
+"<="            { return "LTE"; }
+">"             { return "GT"; }
+">="            { return "GTE"; }
 
 /* BOOLEAN_OP */
 /* L1 */
-"||" { return "BOOLEAN_OR"; }
+"||"            { return "BOOLEAN_OR"; }
 /* L2 */
-"&&" { return "BOOLEAN_AND"; }
+"&&"            { return "BOOLEAN_AND"; }
 /* L3 */
-"!" { return "BOOLEAN_NOT"; }
+"!"             { return "BOOLEAN_NOT"; }
 
 /* BITWISE_OP */
 /* L1 */
-"|" { return "BITWISE_OR"; }
+"|"             { return "BITWISE_OR"; }
 /* L2 */
-"^" { return "BITWISE_XOR"; }
+"^"             { return "BITWISE_XOR"; }
 /* L3 */
-"&" { return "BITWISE_AND"; }
+"&"             { return "BITWISE_AND"; }
 /* L4 */
-"<<" { return "BITWISE_LEFT_SHIFT"; }
-">>" { return "BITWISE_RIGHT_SHIFT"; }
+"<<"            { return "BITWISE_LEFT_SHIFT"; }
+">>"            { return "BITWISE_RIGHT_SHIFT"; }
 /* L5 */
-"~" { return "BITWISE_NOT"; }
+"~"             { return "BITWISE_NOT"; }
 
 /* ASSIGNMENT_OP */
 /* L1 */
-"=" { return "ASSIGN"; }
+"="             { return "ASSIGN"; }
 
 /* CONST */
-[0-9]+\.[0-9]+ { return "CONST_FLOAT"; }
-[0-9]+ { return "CONST_INT"; }
-(true|false) { return "CONST_BOOLEAN"; }
-\".*\" { return "CONST_STRING"; }
+[0-9]+\.[0-9]+  { return "CONST_FLOAT"; }
+[0-9]+          { return "CONST_INT"; }
+(true|false)    { return "CONST_BOOLEAN"; }
+\".*\"          { return "CONST_STRING"; }
 
 /* CONTEXT TOKENS */
-"(" { return "OPEN_PARENTHESIS"; }
-")" { return "CLOSE_PARENTHESIS"; }
-"{" { return "OPEN_CURLY_BRACKET"; }
-"}" { return "CLOSE_CURLY_BRACKET"; }
-"[" { return "OPEN_SQUARE_BRACKET"; }
-"]" { return "CLOSE_SQUARE_BRACKET"; }
-"," { return "COMMA"; }
-";" { return "SEMICOLON"; }
-":" { return "COLON"; }
-"." { return "DOT"; }
-if { return "IF"; }
-else { return "ELSE"; }
-const { return "CONST"; }
-return { return "RETURN"; }
-for { return "FOR"; }
-while { return "WHILE"; }
-class { return "CLASS"; }
-extends { return "EXTENDS"; }
-construct { return "CONSTRUCTOR"; }
-destruct { return "DESTRUCTOR"; }
-void { return "VOID"; }
+"("             { return "OPEN_PARENTHESIS"; }
+")"             { return "CLOSE_PARENTHESIS"; }
+"{"             { return "OPEN_CURLY_BRACKET"; }
+"}"             { return "CLOSE_CURLY_BRACKET"; }
+"["             { return "OPEN_SQUARE_BRACKET"; }
+"]"             { return "CLOSE_SQUARE_BRACKET"; }
+","             { return "COMMA"; }
+";"             { return "SEMICOLON"; }
+":"             { return "COLON"; }
+"."             { return "DOT"; }
 
-/* TYPE */
-int { return "INT"; }
-float { return "FLOAT"; }
-string { return "STRING"; }
-bool { return "BOOL"; }
-[A-z0-9]+ { return "ID"; }
+/* RESERVED KEYWORDS */
+"if"            { return "IF"; }
+"else"          { return "ELSE"; }
+"const"         { return "CONST"; }
+"return"        { return "RETURN"; }
+"for"           { return "FOR"; }
+"while"         { return "WHILE"; }
+"class"         { return "CLASS"; }
+"extends"       { return "EXTENDS"; }
+"construct"     { return "CONSTRUCTOR"; }
+"destruct"      { return "DESTRUCTOR"; }
+"void"          { return "VOID"; }
 
-. { return "INVALID"; }
+/* TYPES */
+"int"           { return "INT"; }
+"float"         { return "FLOAT"; }
+"string"        { return "STRING"; }
+"bool"          { return "BOOL"; }
+[A-z][A-z0-9_]* { return "ID"; }
+
+.               { return "INVALID"; }
 
 /lex
 
@@ -155,7 +158,7 @@ type:
     ID;
 
 /* CONST */
-const:
+const_type:
     CONST_INT |
     CONST_FLOAT |
     CONST_STRING |
@@ -172,21 +175,36 @@ vars:
     CONST type vars_1 SEMICOLON;
 
 vars_1:
+    ID array_declare ASSIGN array_assign vars_2 |
+    ID array_declare vars_2 |
     ID ASSIGN expression vars_2 |
-    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET ASSIGN OPEN_SQUARE_BRACKET array_assign CLOSE_SQUARE_BRACKET vars_2 |
     ID vars_2;
 
 vars_2: /* empty */
     |
     COMMA vars_1;
 
-array_assign:
-    OPEN_SQUARE_BRACKET array_assign CLOSE_SQUARE_BRACKET |
-    expression array_assign_1;
+array_declare:
+    OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET array_declare_1;
 
-array_assign_1: /* empty */
+array_declare_1: /* empty */
     |
-    COMMA expression array_assign_1;
+    array_declare;
+
+array_assign:
+    OPEN_SQUARE_BRACKET array_assign_1 CLOSE_SQUARE_BRACKET;
+
+
+// handle [1, 2, 3, 4] and [[1, 2, 3, 4]] and [[1, 2], [1, 2]]
+array_assign_1:
+    array_assign_2 |
+    array_assign |
+    array_assign COMMA array_assign;
+
+// handle 1, 2, 3, 4, 5, etc
+array_assign_2: /* empty */
+    expression |
+    expression COMMA array_assign_2;
 
 class:
     CLASS ID EXTENDS ID OPEN_CURLY_BRACKET class_2 CLOSE_CURLY_BRACKET |
@@ -214,8 +232,8 @@ block:
 block_1: /* empty */
     |
     statement |
-    while |
-    for;
+    while_loop |
+    for_loop;
 
 statement:
     statement_1 SEMICOLON;
@@ -234,7 +252,7 @@ for_loop:
 
 function:
     type ID function_params block |
-    void ID function_params block;
+    VOID ID function_params block;
 
 function_params:
     OPEN_PARENTHESIS CLOSE_PARENTHESIS |
@@ -318,5 +336,5 @@ expression_l11_1: /* empty */
 expression_l12:
     OPEN_PARENTHESIS expression CLOSE_PARENTHESIS |
     function_call |
-    const |
+    const_type |
     ID;
