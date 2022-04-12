@@ -2,8 +2,7 @@
 %%
 
 /* Skip spaces and empty lines */
-\s           ;
-[\t\n\r]          ;
+[\s\t\n\r] {};
 
 /* Lexical grammar */
 /* ARITHMETIC_OP */
@@ -88,7 +87,7 @@
 "bool"          { return "BOOL"; }
 [A-z][A-z0-9_]* { return "ID"; }
 
-.               { return "INVALID"; }
+.               { throw new Error("Unsupported symbols"); }
 
 /lex
 
