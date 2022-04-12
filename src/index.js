@@ -7,6 +7,6 @@ const files = filePaths.map((filePath) => readFileSync(filePath, "utf-8"));
 
 if (files?.length) {
   const grammar = readFileSync(path.join(__dirname, "grammar.jison"), "utf-8");
-  const parser = new Parser(grammar, { debug: true });
+  const parser = new Parser(grammar, { debug: false });
   files.forEach((file) => parser.parse(file));
 }

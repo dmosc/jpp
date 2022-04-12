@@ -1,9 +1,6 @@
 %lex
 %%
 
-/* Skip spaces and empty lines */
-[\s\t\n\r] {};
-
 /* Lexical grammar */
 /* ARITHMETIC_OP */
 /* L1 */
@@ -49,12 +46,6 @@
 /* L1 */
 "="             { return "ASSIGN"; }
 
-/* CONST */
-[0-9]+\.[0-9]+  { return "CONST_FLOAT"; }
-[0-9]+          { return "CONST_INT"; }
-(true|false)    { return "CONST_BOOLEAN"; }
-\".*\"          { return "CONST_STRING"; }
-
 /* CONTEXT TOKENS */
 "("             { return "OPEN_PARENTHESIS"; }
 ")"             { return "CLOSE_PARENTHESIS"; }
@@ -85,8 +76,15 @@
 "float"         { return "FLOAT"; }
 "string"        { return "STRING"; }
 "bool"          { return "BOOL"; }
-[A-z][A-z0-9_]* { return "ID"; }
+[A-z_][A-z0-9_]* { return "ID"; }
 
+/* CONST */
+[0-9]+\.[0-9]+  { return "CONST_FLOAT"; }
+[0-9]+          { return "CONST_INT"; }
+(true|false)    { return "CONST_BOOLEAN"; }
+\".*\"          { return "CONST_STRING"; }
+
+[\s\t\n\r]      {}
 .               { throw new Error("Unsupported symbols"); }
 
 /lex
@@ -192,7 +190,6 @@ array_declare_1: /* empty */
 
 array_assign:
     OPEN_SQUARE_BRACKET array_assign_1 CLOSE_SQUARE_BRACKET;
-
 
 // handle [1, 2, 3, 4] and [[1, 2, 3, 4]] and [[1, 2], [1, 2]]
 array_assign_1:
