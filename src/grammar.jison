@@ -258,8 +258,8 @@ while_loop:
     WHILE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
 
 function_call:
-    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS SEMICOLON |
-    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS SEMICOLON;
+    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS |
+    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS;
 
 function_call_1: /* empty */
     |
@@ -277,7 +277,7 @@ statement:
     condition |
     while_loop |
     for_loop |
-    function_call |
+    function_call SEMICOLON |
     RETURN expression SEMICOLON;
 
 expression:

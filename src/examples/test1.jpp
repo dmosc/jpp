@@ -18,4 +18,5 @@ program TEST_1 {
     var string text3;
     text3 = "Hello world";
     test();
+    a = test() & 45;
 }
