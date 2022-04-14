@@ -1,8 +1,21 @@
-int b = 45, c = 1, e;
-float f1, f2, f3;
-int w = 1 - 5 * (45 + 2);
-const int arr [1] = [1], arr1 [2] [10] = [
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-];
-string text1 = "😀", text2;
+var int a;
+var float f1, f2, f3;
+var int arr[1], arr1[2][10];
+var string text1, text2;
+
+func int test() {
+    return 1 + 1;
+}
+
+func void test2(string a, int b) {
+    var float c, d, e;
+    c = 1.0 * (b >> 1);
+    d = ~((b % 45) + c * 45);
+    e = c * d;
+}
+
+program TEST_1 {
+    var string text3;
+    text3 = "Hello world";
+    test();
+}

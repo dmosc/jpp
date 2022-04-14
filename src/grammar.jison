@@ -2,95 +2,101 @@
 %%
 
 /* Lexical grammar */
-/* ARITHMETIC_OP */
-/* L1 */
-"+"             { return "PLUS"; }
-"-"             { return "MINUS"; }
-/* L2 */
-"*"             { return "MULTIPLICATION"; }
-"/"             { return "DIVISION"; }
-"%"             { return "MODULO"; }
-
-/* RELATIONAL_OP */
-/* L1 */
-"=="            { return "EQUALS"; }
-"!="            { return "NOT_EQUALS"; }
-/* L2 */
-"<"             { return "LT"; }
-"<="            { return "LTE"; }
-">"             { return "GT"; }
-">="            { return "GTE"; }
-
 /* BOOLEAN_OP */
 /* L1 */
-"||"            { return "BOOLEAN_OR"; }
+"||"                   { return "BOOLEAN_OR"; }
 /* L2 */
-"&&"            { return "BOOLEAN_AND"; }
+"&&"                   { return "BOOLEAN_AND"; }
 /* L3 */
-"!"             { return "BOOLEAN_NOT"; }
+"!"                    { return "BOOLEAN_NOT"; }
 
 /* BITWISE_OP */
 /* L1 */
-"|"             { return "BITWISE_OR"; }
+"|"                    { return "BITWISE_OR"; }
 /* L2 */
-"^"             { return "BITWISE_XOR"; }
+"^"                    { return "BITWISE_XOR"; }
 /* L3 */
-"&"             { return "BITWISE_AND"; }
+"&"                    { return "BITWISE_AND"; }
 /* L4 */
-"<<"            { return "BITWISE_LEFT_SHIFT"; }
-">>"            { return "BITWISE_RIGHT_SHIFT"; }
+"<<"                   { return "BITWISE_LEFT_SHIFT"; }
+">>"                   { return "BITWISE_RIGHT_SHIFT"; }
 /* L5 */
-"~"             { return "BITWISE_NOT"; }
+"~"                    { return "BITWISE_NOT"; }
+
+/* ARITHMETIC_OP */
+/* L1 */
+"+"                    { return "PLUS"; }
+"-"                    { return "MINUS"; }
+/* L2 */
+"*"                    { return "MULTIPLICATION"; }
+"/"                    { return "DIVISION"; }
+"%"                    { return "MODULO"; }
+
+/* RELATIONAL_OP */
+/* L1 */
+"=="                   { return "EQUALS"; }
+"!="                   { return "NOT_EQUALS"; }
+/* L2 */
+"<"                    { return "LT"; }
+"<="                   { return "LTE"; }
+">"                    { return "GT"; }
+">="                   { return "GTE"; }
 
 /* ASSIGNMENT_OP */
 /* L1 */
-"="             { return "ASSIGN"; }
+"="                    { return "ASSIGN"; }
 
 /* CONTEXT TOKENS */
-"("             { return "OPEN_PARENTHESIS"; }
-")"             { return "CLOSE_PARENTHESIS"; }
-"{"             { return "OPEN_CURLY_BRACKET"; }
-"}"             { return "CLOSE_CURLY_BRACKET"; }
-"["             { return "OPEN_SQUARE_BRACKET"; }
-"]"             { return "CLOSE_SQUARE_BRACKET"; }
-","             { return "COMMA"; }
-";"             { return "SEMICOLON"; }
-":"             { return "COLON"; }
-"."             { return "DOT"; }
+"("                    { return "OPEN_PARENTHESIS"; }
+")"                    { return "CLOSE_PARENTHESIS"; }
+"{"                    { return "OPEN_CURLY_BRACKET"; }
+"}"                    { return "CLOSE_CURLY_BRACKET"; }
+"["                    { return "OPEN_SQUARE_BRACKET"; }
+"]"                    { return "CLOSE_SQUARE_BRACKET"; }
+","                    { return "COMMA"; }
+";"                    { return "SEMICOLON"; }
+":"                    { return "COLON"; }
+"."                    { return "DOT"; }
 
 /* RESERVED KEYWORDS */
-"if"            { return "IF"; }
-"else"          { return "ELSE"; }
-"const"         { return "CONST"; }
-"return"        { return "RETURN"; }
-"for"           { return "FOR"; }
-"while"         { return "WHILE"; }
-"class"         { return "CLASS"; }
-"extends"       { return "EXTENDS"; }
-"construct"     { return "CONSTRUCTOR"; }
-"destruct"      { return "DESTRUCTOR"; }
-"void"          { return "VOID"; }
+"if"                   { return "IF"; }
+"elif"                 { return "ELIF"; }
+"else"                 { return "ELSE"; }
+"const"                { return "CONST"; }
+"return"               { return "RETURN"; }
+"for"                  { return "FOR"; }
+"while"                { return "WHILE"; }
+"class"                { return "CLASS"; }
+"extends"              { return "EXTENDS"; }
+"construct"            { return "CONSTRUCTOR"; }
+"destruct"             { return "DESTRUCTOR"; }
+"void"                 { return "VOID"; }
+"program"              { return "PROGRAM"; }
+"func"                 { return "FUNC"; }
+"var"                  { return "VAR"; }
+"read"                  { return "READ"; }
+"write"                  { return "WRITE"; }
 
 /* TYPES */
-"int"           { return "INT"; }
-"float"         { return "FLOAT"; }
-"string"        { return "STRING"; }
-"bool"          { return "BOOL"; }
-[A-z_][A-z0-9_]* { return "ID"; }
+"int"                  { return "INT"; }
+"float"                { return "FLOAT"; }
+"string"               { return "STRING"; }
+"bool"                 { return "BOOL"; }
+[A-Za-z_][A-Za-z0-9_]* { return "ID"; }
 
 /* CONST */
-[0-9]+\.[0-9]+  { return "CONST_FLOAT"; }
-[0-9]+          { return "CONST_INT"; }
-(true|false)    { return "CONST_BOOLEAN"; }
-\".*\"          { return "CONST_STRING"; }
+[0-9]+\.[0-9]+         { return "CONST_FLOAT"; }
+[0-9]+                 { return "CONST_INT"; }
+(true|false)           { return "CONST_BOOLEAN"; }
+\".*\"                 { return "CONST_STRING"; }
 
-[\s\t\n\r]      {}
-.               { throw new Error("Unsupported symbols"); }
+[\s\t\n\r]+            {}
+.                      { throw new Error("Unsupported symbols"); }
 
 /lex
 
 /* Grammar instructions */
-%start file
+%start program
 
 %%
 /* Language grammar */
@@ -147,11 +153,13 @@ assignment_op_l1:
     ASSIGN;
 
 /* TYPE */
-type:
+type_s:
     INT |
     FLOAT |
     STRING |
-    BOOL |
+    BOOL;
+
+type_c:
     ID;
 
 /* CONST */
@@ -161,176 +169,167 @@ const_type:
     CONST_STRING |
     CONST_BOOLEAN;
 
-file: /* empty */
+program:
+    program_1 PROGRAM ID block {
+        console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
+    };
+
+program_1: /* empty */
     |
-    vars file |
-    class file |
-    block file;
-
-vars:
-    type vars_1 SEMICOLON |
-    CONST type vars_1 SEMICOLON;
-
-vars_1:
-    ID array_declare ASSIGN array_assign vars_2 |
-    ID array_declare vars_2 |
-    ID ASSIGN expression vars_2 |
-    ID vars_2;
-
-vars_2: /* empty */
-    |
-    COMMA vars_1;
-
-array_declare:
-    OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET array_declare_1;
-
-array_declare_1: /* empty */
-    |
-    array_declare;
-
-array_assign:
-    OPEN_SQUARE_BRACKET array_assign_1 CLOSE_SQUARE_BRACKET;
-
-// handle [1, 2, 3, 4] and [[1, 2, 3, 4]] and [[1, 2], [1, 2]]
-array_assign_1:
-    array_assign_2 |
-    array_assign |
-    array_assign COMMA array_assign;
-
-// handle 1, 2, 3, 4, 5, etc
-array_assign_2: /* empty */
-    expression |
-    expression COMMA array_assign_2;
-
-class:
-    CLASS ID EXTENDS ID OPEN_CURLY_BRACKET class_2 CLOSE_CURLY_BRACKET |
-    CLASS ID OPEN_CURLY_BRACKET class_2 CLOSE_CURLY_BRACKET;
-
-class_2:
-    vars class_3 |
-    function class_3 |
-    construct class_3 |
-    destruct class_3;
-
-class_3: /* empty */
-    |
-    class_2;
-
-construct:
-    CONSTRUCTOR function_params block;
-
-destruct:
-    DESTRUCTOR block;
+    function program_1 |
+    vars program_1 |
+    class program_1;
 
 block:
     OPEN_CURLY_BRACKET block_1 CLOSE_CURLY_BRACKET;
 
 block_1: /* empty */
     |
-    statement |
-    while_loop |
-    for_loop;
+    statement block_1;
 
-statement:
-    statement_1 SEMICOLON;
+params:
+    OPEN_PARENTHESIS params_1 CLOSE_PARENTHESIS;
 
-statement_1:
+params_1: /* empty */
+    |
+    type_s ID params_2;
+
+params_2: /* empty */
+    |
+    COMMA type_s ID params_2;
+
+function:
+    FUNC function_1 ID params block;
+
+function_1:
+    type_s |
+    VOID;
+
+variable:
+    ID |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET;
+
+vars:
+    VAR type_s variable vars_1 SEMICOLON |
+    VAR type_c ID vars_2 SEMICOLON;
+
+vars_1: /* empty */
+    |
+    COMMA variable vars_1;
+
+vars_2: /* empty */
+    |
+    COMMA ID vars_2;
+
+assign:
+    variable assignment_op_l1 expression SEMICOLON;
+
+read:
+    READ OPEN_PARENTHESIS variable read_1 CLOSE_PARENTHESIS SEMICOLON;
+
+read_1: /* empty */
+    |
+    COMMA variable read_1;
+
+write:
+    WRITE OPEN_PARENTHESIS expression write_1 CLOSE_PARENTHESIS SEMICOLON;
+
+write_1: /* empty */
+    |
+    COMMA variable write_1;
+
+condition:
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block condition_1;
+
+condition_1: /* empty */
+    |
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block condition_1 |
+    ELSE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
+
+for_loop:
+    FOR OPEN_PARENTHESIS for_loop_1 expression SEMICOLON expression CLOSE_PARENTHESIS block;
+
+for_loop_1:
     vars |
-    function |
-    expression |
-    RETURN expression;
+    SEMICOLON;
 
 while_loop:
     WHILE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
 
-for_loop:
-    FOR OPEN_PARENTHESIS vars SEMICOLON expression SEMICOLON expression CLOSE_PARENTHESIS block;
-
-function:
-    type ID function_params block |
-    VOID ID function_params block;
-
-function_params:
-    OPEN_PARENTHESIS CLOSE_PARENTHESIS |
-    OPEN_PARENTHESIS function_params_1 CLOSE_PARENTHESIS;
-
-function_params_1:
-    CONST type ID function_params_2 |
-    type ID function_params_2;
-
-function_params_2: /* empty */
-    |
-    COMMA function_params_1;
-
 function_call:
-    ID DOT function_call |
-    ID OPEN_PARENTHESIS function_call_1 CLOSE_PARENTHESIS;
+    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS SEMICOLON |
+    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS SEMICOLON;
 
 function_call_1: /* empty */
     |
-    expression function_call_2;
+    DOT ID;
 
 function_call_2: /* empty */
     |
-    COMMA function_call_1;
+    COMMA expression function_call_2;
+
+statement:
+    vars |
+    assign |
+    read |
+    write |
+    condition |
+    while_loop |
+    for_loop |
+    function_call |
+    RETURN expression SEMICOLON;
 
 expression:
-    expression_1 expression_l1;
-
-expression_1: /* empty */
-    |
-    assignment_op_l1 expression;
+    expression_l1 |
+    expression_l1 boolean_op_l1 expression_l1;
 
 expression_l1:
     expression_l2 |
-    expression_l2 boolean_op_l1 expression_l2;
+    expression_l2 boolean_op_l2 expression_l2;
 
 expression_l2:
     expression_l3 |
-    expression_l3 boolean_op_l2 expression_l3;
+    expression_l3 bitwise_op_l1 expression_l3;
 
 expression_l3:
     expression_l4 |
-    expression_l4 bitwise_op_l1 expression_l4;
+    expression_l4 bitwise_op_l2 expression_l4;
 
 expression_l4:
     expression_l5 |
-    expression_l5 bitwise_op_l2 expression_l5;
+    expression_l5 bitwise_op_l3 expression_l5;
 
 expression_l5:
     expression_l6 |
-    expression_l6 bitwise_op_l3 expression_l6;
+    expression_l6 relational_op_l1 expression_l6;
 
 expression_l6:
     expression_l7 |
-    expression_l7 relational_op_l1 expression_l7;
+    expression_l7 relational_op_l2 expression_l7;
 
 expression_l7:
     expression_l8 |
-    expression_l8 relational_op_l2 expression_l8;
+    expression_l8 bitwise_op_l4 expression_l8;
 
 expression_l8:
     expression_l9 |
-    expression_l9 bitwise_op_l4 expression_l9;
+    expression_l9 arithmetic_op_l1 expression_l9;
 
 expression_l9:
     expression_l10 |
-    expression_l10 arithmetic_op_l1 expression_l10;
+    expression_l10 arithmetic_op_l2 expression_l10;
 
 expression_l10:
-    expression_l11 |
-    expression_l11 arithmetic_op_l2 expression_l11;
+    expression_l10_1 expression_l11;
+
+expression_l10_1: /* empty */
+    |
+    boolean_op_l3 expression_l10_1 |
+    bitwise_op_l5 expression_l10_1;
 
 expression_l11:
-    expression_l11_1 expression_l12;
-
-expression_l11_1: /* empty */
-    |
-    boolean_op_l3 expression_l11_1 |
-    bitwise_op_l5 expression_l11_1;
-
-expression_l12:
     OPEN_PARENTHESIS expression CLOSE_PARENTHESIS |
     function_call |
     const_type |
-    ID;
+    variable;
