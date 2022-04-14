@@ -245,7 +245,7 @@ condition:
 condition_1: /* empty */
     |
     ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block condition_1 |
-    ELSE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
+    ELSE block;
 
 for_loop:
     FOR OPEN_PARENTHESIS for_loop_1 expression SEMICOLON expression CLOSE_PARENTHESIS block;

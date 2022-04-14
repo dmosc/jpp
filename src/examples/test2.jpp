@@ -1,0 +1,15 @@
+var int a, b;
+
+program TEST_2 {
+    a = 10;
+    b = 30;
+    if (a > b) {
+        write("A is greater than B");
+    } elif (b > a) {
+        write("B is greater than A");
+    } elif (b == 30) {
+        write("B equals 30");
+    } else {
+        write("A and B are equal");
+    }
+}
