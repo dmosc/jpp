@@ -74,8 +74,8 @@
 "program"              { return "PROGRAM"; }
 "func"                 { return "FUNC"; }
 "var"                  { return "VAR"; }
-"read"                  { return "READ"; }
-"write"                  { return "WRITE"; }
+"read"                 { return "READ"; }
+"write"                { return "WRITE"; }
 
 /* TYPES */
 "int"                  { return "INT"; }
