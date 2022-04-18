@@ -6,8 +6,7 @@
   "author": "dmosc <osdavrm@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "node src/index.js",
-    "test:all": "./scripts/test.sh"
+    "test": "jest test"
   },
   "dependencies": {
     "jison": "^0.4.18"
