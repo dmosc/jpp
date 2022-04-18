@@ -6,12 +6,20 @@
   "author": "dmosc <osdavrm@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "jest test"
+    "test": "jest test",
+    "prepare": "husky install",
+    "format": "lint-staged"
   },
   "dependencies": {
     "jison": "^0.4.18"
   },
+  "lint-staged": {
+    "*.js": "prettier --write"
+  },
   "devDependencies": {
-    "jest": "^27.5.1"
+    "husky": "^7.0.4",
+    "jest": "^27.5.1",
+    "lint-staged": "^12.3.8",
+    "prettier": "^2.6.2"
   }
 }
