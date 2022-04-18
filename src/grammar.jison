@@ -250,7 +250,7 @@ destruct:
     DESTRUCT OPEN_PARENTHESIS CLOSE_PARENTHESIS block;
 
 assign:
-    variable assignment_op_l1 expression SEMICOLON;
+    variable assignment_op_l1 expression;
 
 read:
     READ OPEN_PARENTHESIS variable read_1 CLOSE_PARENTHESIS SEMICOLON;
@@ -275,11 +275,20 @@ condition_1: /* empty */
     ELSE block;
 
 for_loop:
-    FOR OPEN_PARENTHESIS for_loop_1 expression SEMICOLON expression CLOSE_PARENTHESIS block;
+    FOR OPEN_PARENTHESIS for_loop_1 for_loop_2 for_loop_3 CLOSE_PARENTHESIS block;
 
 for_loop_1:
-    vars |
-    SEMICOLON;
+    SEMICOLON |
+    assign SEMICOLON;
+
+for_loop_2:
+    SEMICOLON |
+    expression SEMICOLON;
+
+for_loop_3:
+    /* EMPTY */ |
+    assign;
+
 
 while_loop:
     WHILE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
@@ -298,7 +307,7 @@ function_call_2: /* empty */
 
 statement:
     vars |
-    assign |
+    assign SEMICOLON |
     read |
     write |
     condition |
