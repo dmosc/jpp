@@ -3,6 +3,7 @@
 
 
 /* COMMENTS */
+\".*?\"                 { return "CONST_STRING"; }
 [/]{2}(.|\n|\r)+?[/]{2} {}
 
 /* Lexical grammar */
@@ -91,7 +92,6 @@
 [0-9]+\.[0-9]+         { return "CONST_FLOAT"; }
 [0-9]+                 { return "CONST_INT"; }
 (true|false)           { return "CONST_BOOLEAN"; }
-\".*\"                 { return "CONST_STRING"; }
 
 /* WHITESPACES */
 [\s\t\n\r]+            {}
