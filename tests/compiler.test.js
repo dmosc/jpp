@@ -23,6 +23,11 @@ const testMap = [
     description: 'For loop and 2d array testing',
     error: false,
   },
+  {
+    name: 'test5',
+    description: 'Arithmetic tests',
+    error: false,
+  },
 ];
 
 test.each(testMap)('Compile $name ($description)', ({ name, error }) => {

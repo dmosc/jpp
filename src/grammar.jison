@@ -331,43 +331,43 @@ statement:
 
 expression:
     expression_l1 |
-    expression_l1 boolean_op_l1 expression_l1;
+    expression_l1 boolean_op_l1 expression;
 
 expression_l1:
     expression_l2 |
-    expression_l2 boolean_op_l2 expression_l2;
+    expression_l2 boolean_op_l2 expression_l1;
 
 expression_l2:
     expression_l3 |
-    expression_l3 bitwise_op_l1 expression_l3;
+    expression_l3 bitwise_op_l1 expression_l2;
 
 expression_l3:
     expression_l4 |
-    expression_l4 bitwise_op_l2 expression_l4;
+    expression_l4 bitwise_op_l2 expression_l3;
 
 expression_l4:
     expression_l5 |
-    expression_l5 bitwise_op_l3 expression_l5;
+    expression_l5 bitwise_op_l3 expression_l4;
 
 expression_l5:
     expression_l6 |
-    expression_l6 relational_op_l1 expression_l6;
+    expression_l6 relational_op_l1 expression_l5;
 
 expression_l6:
     expression_l7 |
-    expression_l7 relational_op_l2 expression_l7;
+    expression_l7 relational_op_l2 expression_l6;
 
 expression_l7:
     expression_l8 |
-    expression_l8 bitwise_op_l4 expression_l8;
+    expression_l8 bitwise_op_l4 expression_l7;
 
 expression_l8:
     expression_l9 |
-    expression_l9 arithmetic_op_l1 expression_l9;
+    expression_l9 arithmetic_op_l1 expression_l8;
 
 expression_l9:
     expression_l10 |
-    expression_l10 arithmetic_op_l2 expression_l10;
+    expression_l10 arithmetic_op_l2 expression_l9;
 
 expression_l10:
     expression_l10_1 expression_l11;
