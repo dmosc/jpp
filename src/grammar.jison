@@ -62,14 +62,13 @@
 "if"                   { return "IF"; }
 "elif"                 { return "ELIF"; }
 "else"                 { return "ELSE"; }
-"const"                { return "CONST"; }
 "return"               { return "RETURN"; }
 "for"                  { return "FOR"; }
 "while"                { return "WHILE"; }
 "class"                { return "CLASS"; }
 "extends"              { return "EXTENDS"; }
-"construct"            { return "CONSTRUCTOR"; }
-"destruct"             { return "DESTRUCTOR"; }
+"construct"            { return "CONSTRUCT"; }
+"destruct"             { return "DESTRUCT"; }
 "void"                 { return "VOID"; }
 "program"              { return "PROGRAM"; }
 "func"                 { return "FUNC"; }
@@ -226,6 +225,29 @@ vars_1: /* empty */
 vars_2: /* empty */
     |
     COMMA ID vars_2;
+
+class:
+    CLASS ID class_1 class_block;
+
+class_1: /* empty */
+    |
+    EXTENDS ID;
+
+class_block:
+    OPEN_CURLY_BRACKET class_block_1 CLOSE_CURLY_BRACKET;
+
+class_block_1: /* empty */
+    |
+    vars class_block_1 |
+    function class_block_1 |
+    construct class_block_1 |
+    destruct class_block_1;
+
+construct:
+    CONSTRUCT params block;
+
+destruct:
+    DESTRUCT OPEN_PARENTHESIS CLOSE_PARENTHESIS block;
 
 assign:
     variable assignment_op_l1 expression SEMICOLON;

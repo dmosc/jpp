@@ -1,0 +1,26 @@
+class Point {
+    var int x, y;
+
+    construct(int _x, int _y) {
+        x = _x;
+        y = _y;
+    }
+
+    destruct() {
+        write("Goodbye!");
+    }
+
+    func int getX() {
+        return x;
+    }
+
+    func int getY() {
+        return y;
+    }
+}
+
+program TEST_3 {
+    var Point p1, p2;
+    p1 = Point(1, 2);
+    write(p1.getX());
+}
