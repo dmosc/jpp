@@ -205,18 +205,23 @@ function_1:
     type_s |
     VOID;
 
+variable_declare:
+    ID |
+        ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET |
+        ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET;
+
 variable:
     ID |
-    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET |
-    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET;
+    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET |
+    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET;
 
 vars:
-    VAR type_s variable vars_1 SEMICOLON |
+    VAR type_s variable_declare vars_1 SEMICOLON |
     VAR type_c ID vars_2 SEMICOLON;
 
 vars_1: /* empty */
     |
-    COMMA variable vars_1;
+    COMMA variable_declare vars_1;
 
 vars_2: /* empty */
     |

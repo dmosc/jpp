@@ -1,8 +1,10 @@
-var int a, b;
+var int a, b, c[5];
 
 program TEST_2 {
     a = 10;
     b = 30;
+    read(c[1 * 5]);
+    write(c[2 / 1]);
     if (a > b) {
         write("A is greater than B");
     } elif (b > a) {
