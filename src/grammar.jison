@@ -2,8 +2,14 @@
 %%
 
 
-/* COMMENTS */
+/*
+    STRINGS
+    Strings must be evaluated before comments to avoid double slashes
+    in strings being detected as comments.
+*/
 \".*?\"                 { return "CONST_STRING"; }
+
+/* COMMENTS */
 [/]{2}(.|\n|\r)+?[/]{2} {}
 
 /* Lexical grammar */
