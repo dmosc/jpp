@@ -1,6 +1,10 @@
 %lex
 %%
 
+
+/* COMMENTS */
+[/]{2}(.|\n|\r)+?[/]{2} {}
+
 /* Lexical grammar */
 /* BOOLEAN_OP */
 /* L1 */
@@ -89,7 +93,10 @@
 (true|false)           { return "CONST_BOOLEAN"; }
 \".*\"                 { return "CONST_STRING"; }
 
+/* WHITESPACES */
 [\s\t\n\r]+            {}
+
+/* UNDEFINED SYMBOLS */
 .                      { throw new Error("Unsupported symbols"); }
 
 /lex
