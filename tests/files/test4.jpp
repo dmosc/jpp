@@ -4,7 +4,7 @@
 var int mat[2][10];
 
 
-program TEST_1 {
+program TEST_4 {
     var int i, j;
     for (i = 0; i < 2; i = i + 1) {
         for (j = 0; j < 10; j = j + 1) {
