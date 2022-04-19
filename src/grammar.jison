@@ -1,4 +1,11 @@
 %lex
+%{
+    const { join } = require("path");
+    if (!yy.isReady) {
+        yy.isReady = true;
+        const Quadruples = require(join(__basedir, 'quadruples.js'));
+    }
+%}
 %%
 
 

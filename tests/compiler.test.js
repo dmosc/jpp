@@ -1,6 +1,8 @@
 const { parser } = require('../src/compiler');
 const { readFileSync } = require('fs');
-const path = require('path');
+const { join } = require('path');
+
+global.__basedir = join(__dirname, "..", "src");
 
 const testMap = [
   {
@@ -32,7 +34,7 @@ const testMap = [
 
 test.each(testMap)('Compile $name ($description)', ({ name, error }) => {
   const fileContent = readFileSync(
-    path.join(__dirname, 'files', `${name}.jpp`),
+    join(__dirname, 'files', `${name}.jpp`),
     'utf-8'
   );
 
