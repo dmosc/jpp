@@ -4,10 +4,13 @@
     if (!yy.isReady) {
         yy.isReady = true;
         const Quadruples = require(join(__basedir, 'quadruples.js'));
+        const constants = require(join(__basedir, 'constants.js'));
+
+        yy.quadruples = new Quadruples();
+        yy.constants = constants;
     }
 %}
 %%
-
 
 /*
     STRINGS
@@ -183,14 +186,21 @@ type_c:
 
 /* CONST */
 const_type:
-    CONST_INT |
-    CONST_FLOAT |
+    CONST_INT {
+        yy.quadruples.processOperand({ data: $1, type: yy.constants.TYPES.INT });
+    } |
+    CONST_FLOAT {
+        yy.quadruples.processOperand({ data: $1, type: yy.constants.TYPES.FLOAT });
+    } |
     CONST_STRING |
     CONST_BOOLEAN;
 
 program:
     program_1 PROGRAM ID block {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
+        while(!yy.quadruples.quads.isEmpty()) {
+            console.log(yy.quadruples.quads.dequeue());
+        }
     };
 
 program_1: /* empty */
@@ -337,52 +347,78 @@ statement:
     RETURN expression SEMICOLON;
 
 expression:
-    expression_l1 |
-    expression_l1 boolean_op_l1 expression;
+    expression_l1 {
+        yy.quadruples.processUnaryOperators();
+    } |
+    expression_l1 boolean_op_l1 expression {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l1:
     expression_l2 |
-    expression_l2 boolean_op_l2 expression_l1;
+    expression_l2 boolean_op_l2 expression_l1 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l2:
     expression_l3 |
-    expression_l3 bitwise_op_l1 expression_l2;
+    expression_l3 bitwise_op_l1 expression_l2 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l3:
     expression_l4 |
-    expression_l4 bitwise_op_l2 expression_l3;
+    expression_l4 bitwise_op_l2 expression_l3 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l4:
     expression_l5 |
-    expression_l5 bitwise_op_l3 expression_l4;
+    expression_l5 bitwise_op_l3 expression_l4 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l5:
     expression_l6 |
-    expression_l6 relational_op_l1 expression_l5;
+    expression_l6 relational_op_l1 expression_l5 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l6:
     expression_l7 |
-    expression_l7 relational_op_l2 expression_l6;
+    expression_l7 relational_op_l2 expression_l6 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l7:
     expression_l8 |
-    expression_l8 bitwise_op_l4 expression_l7;
+    expression_l8 bitwise_op_l4 expression_l7 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l8:
     expression_l9 |
-    expression_l9 arithmetic_op_l1 expression_l8;
+    expression_l9 arithmetic_op_l1 expression_l8 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l9:
     expression_l10 |
-    expression_l10 arithmetic_op_l2 expression_l9;
+    expression_l10 arithmetic_op_l2 expression_l9 {
+        yy.quadruples.processOperator($2);
+    };
 
 expression_l10:
     expression_l10_1 expression_l11;
 
 expression_l10_1: /* empty */
     |
-    boolean_op_l3 expression_l10_1 |
-    bitwise_op_l5 expression_l10_1;
+    boolean_op_l3 expression_l10_1 {
+        yy.quadruples.processOperator($1);
+    } |
+    bitwise_op_l5 expression_l10_1 {
+        yy.quadruples.processOperator($1);
+    };
 
 expression_l11:
     OPEN_PARENTHESIS expression CLOSE_PARENTHESIS |
