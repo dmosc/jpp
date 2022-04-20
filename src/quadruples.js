@@ -1,10 +1,10 @@
-const { TYPES, TTO_CUBE } = require('./constants');
+const { TYPES, TTO_CUBE, OPCODES } = require('./constants');
 const { Stack, Queue } = require('datastructures-js');
 const { nanoid } = require('nanoid');
 
 class Quadruples {
   constructor() {
-    this.quads = new Queue();
+    this.quads = [];
     this.jumps = new Stack();
     this.operands = new Stack();
   }
@@ -25,8 +25,18 @@ class Quadruples {
       leftOperand?.type,
       operator
     );
-    this.quads.enqueue([operator, leftOperand, rightOperand, { id, type }]);
+    this.quads.push([operator, leftOperand, rightOperand, { id, type }]);
     this.operands.push({ id, type });
+  }
+
+  startJump() {
+    this.jumps.push(this.quads.length);
+    this.quads.push([OPCODES.GOTO_F, undefined, undefined, undefined]);
+  }
+
+  endJump() {
+    const jump = this.jumps.pop();
+    this.quads[jump][3] = this.quads.length;
   }
 }
 

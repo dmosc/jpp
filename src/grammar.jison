@@ -195,11 +195,22 @@ const_type:
     CONST_STRING |
     CONST_BOOLEAN;
 
+/* DECORATORS */
+@start_jump: /* empty */
+    {
+        yy.quadruples.startJump();
+    };
+
+@end_jump: /* empty */
+    {
+        yy.quadruples.endJump();
+    };
+
 program:
     program_1 PROGRAM ID block {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        while(!yy.quadruples.quads.isEmpty()) {
-            console.log(yy.quadruples.quads.dequeue());
+        for (const quad of yy.quadruples.quads) {
+            console.log(quad);
         }
     };
 
@@ -297,11 +308,11 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block condition_1;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @start_jump block @end_jump condition_1;
 
 condition_1: /* empty */
     |
-    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block condition_1 |
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @start_jump block @end_jump condition_1 |
     ELSE block;
 
 for_loop:
