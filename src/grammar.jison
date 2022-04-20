@@ -347,9 +347,7 @@ statement:
     RETURN expression SEMICOLON;
 
 expression:
-    expression_l1 {
-        yy.quadruples.processUnaryOperators();
-    } |
+    expression_l1 |
     expression_l1 boolean_op_l1 expression {
         yy.quadruples.processOperator($2);
     };
@@ -409,14 +407,11 @@ expression_l9:
     };
 
 expression_l10:
-    expression_l10_1 expression_l11;
-
-expression_l10_1: /* empty */
-    |
-    boolean_op_l3 expression_l10_1 {
+    expression_l11 |
+    boolean_op_l3 expression_l11 {
         yy.quadruples.processOperator($1);
     } |
-    bitwise_op_l5 expression_l10_1 {
+    bitwise_op_l5 expression_l11 {
         yy.quadruples.processOperator($1);
     };
 
