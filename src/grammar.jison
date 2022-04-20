@@ -206,9 +206,12 @@ program:
             const loc = `${first_line}.${first_column + 1}-${last_line}.${last_column + 1}`;
             return {
                 operator: op,
-                leftOperand: leftOperand.id || leftOperand.data,
+                leftOperand: leftOperand?.id || leftOperand?.data,
+                leftOperandType: leftOperand?.type,
                 rightOperand: rightOperand.id || rightOperand.data,
+                rightOperandType: rightOperand?.type,
                 resOperand: resOperand.id || resOperand.data,
+                resOperandType: resOperand?.type,
                 loc,
             }
         });

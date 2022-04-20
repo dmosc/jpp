@@ -63,9 +63,11 @@ class Quadruples {
       this.operands.pop(),
     ];
     const location = {
-      first_line: leftOperand.location.first_line,
+      first_line:
+        leftOperand?.location.first_line || operatorLocation.first_line,
       last_line: rightOperand.location.last_line,
-      first_column: leftOperand.location.first_column,
+      first_column:
+        leftOperand?.location.first_column || operatorLocation.first_column,
       last_column: rightOperand.location.last_column,
     };
     const type = TTO_CUBE.getType(
