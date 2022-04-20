@@ -1,31 +1,31 @@
 const TYPES = Object.freeze({
-  INT: "INT",
-  FLOAT: "FLOAT",
-  STRING: "STRING",
-  BOOL: "BOOL",
+  INT: 'INT',
+  FLOAT: 'FLOAT',
+  STRING: 'STRING',
+  BOOL: 'BOOL',
 });
 
 const OPERATORS = Object.freeze({
-  BOOLEAN_OR: "||",
-  BOOLEAN_AND: "&&",
-  BITWISE_OR: "|",
-  BITWISE_XOR: "^",
-  BITWISE_AND: "&",
-  EQUALS: "==",
-  NOT_EQUALS: "!=",
-  GT: ">",
-  GTE: ">=",
-  LT: "<",
-  LTE: "<=",
-  BITWISE_LEFT_SHIFT: "<<",
-  BITWISE_RIGHT_SHIFT: ">>",
-  PLUS: "+",
-  MINUS: "-",
-  MULTIPLICATION: "*",
-  DIVISION: "/",
-  MODULO: "%",
-  BOOLEAN_NOT: "!",
-  BITWISE_NOT: "~",
+  BOOLEAN_OR: '||',
+  BOOLEAN_AND: '&&',
+  BITWISE_OR: '|',
+  BITWISE_XOR: '^',
+  BITWISE_AND: '&',
+  EQUALS: '==',
+  NOT_EQUALS: '!=',
+  GT: '>',
+  GTE: '>=',
+  LT: '<',
+  LTE: '<=',
+  BITWISE_LEFT_SHIFT: '<<',
+  BITWISE_RIGHT_SHIFT: '>>',
+  PLUS: '+',
+  MINUS: '-',
+  MULTIPLICATION: '*',
+  DIVISION: '/',
+  MODULO: '%',
+  BOOLEAN_NOT: '!',
+  BITWISE_NOT: '~',
 });
 
 const OPERANDS = Object.freeze({
@@ -49,7 +49,7 @@ const OPERANDS = Object.freeze({
   [OPERATORS.MODULO]: 2,
   [OPERATORS.BOOLEAN_NOT]: 1,
   [OPERATORS.BITWISE_NOT]: 1,
-})
+});
 
 const TTO_CUBE = Object.freeze({
   [TYPES.INT]: {
@@ -146,16 +146,25 @@ const TTO_CUBE = Object.freeze({
     },
     [OPERATORS.BOOLEAN_NOT]: TYPES.BOOL,
   },
-  getType: function(typeA, typeB, operator) {
+  getType: function (
+    typeA,
+    typeB,
+    operator,
+    { first_line, last_line, first_column, last_column }
+  ) {
     if (this[typeA][operator]) return this[typeA][operator];
     if (this[typeA][typeB][operator]) return this[typeA][typeB][operator];
-    throw new Error(`Invalid operands {${typeA}, ${typeB}} to operator "${operator}"`);
-  }
+    throw new Error(
+      `Invalid operands {${typeA}, ${typeB}} to operator "${operator}" ${first_line}.${
+        first_column + 1
+      }-${last_line}.${last_column + 1}`
+    );
+  },
 });
 
 module.exports = {
   TYPES,
   OPERATORS,
   OPERANDS,
-  TTO_CUBE
+  TTO_CUBE,
 };
