@@ -200,9 +200,20 @@ const_type:
 program:
     program_1 PROGRAM ID block {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        while(!yy.quadruples.quads.isEmpty()) {
-            console.log(yy.quadruples.quads.dequeue());
-        }
+
+        const quads = yy.quadruples.quads.toArray().map(([op, leftOperand, rightOperand, resOperand]) => {
+            const { first_line, first_column, last_line, last_column } = resOperand.location;
+            const loc = `${first_line}.${first_column + 1}-${last_line}.${last_column + 1}`;
+            return {
+                operator: op,
+                leftOperand: leftOperand.id || leftOperand.data,
+                rightOperand: rightOperand.id || rightOperand.data,
+                resOperand: resOperand.id || resOperand.data,
+                loc,
+            }
+        });
+
+        console.table(quads);
     };
 
 program_1: /* empty */

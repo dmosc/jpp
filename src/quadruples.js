@@ -3,6 +3,47 @@ const { Stack, Queue } = require('datastructures-js');
 
 let i = 0;
 
+/**
+ * Quadruple class
+ *
+ * Structure of a quad
+ * | operator | leftoperand | rightoperand | resultOperand |
+ *
+ * Example:
+ *  1 + 5 + 7
+ *  would translate roughly to:
+ * | operator | left operand | right operand | result operand |
+ * | -------- | ------------ | ------------- | -------------- |
+ * |    +     |      1       |       5       |      0temp1    |
+ * |    +     |    0temp1    |       7       |      0temp2    |
+ *
+ * Where the operands can be
+ *
+ * Var reference
+ * {
+ *  id: string;
+ *  type: Constants.TYPES;
+ *  location: {
+ *    first_line: number;
+ *    last_line: number;
+ *    first_column: number;
+ *    last_column: number;
+ *  }
+ * }
+ *
+ * Constant
+ * {
+ *  data: number | string;
+ *  type: Constants.TYPES;
+ *  location: {
+ *    first_line: number;
+ *    last_line: number;
+ *    first_column: number;
+ *    last_column: number;
+ *  }
+ * }
+ *
+ */
 class Quadruples {
   constructor() {
     this.quads = new Queue();
@@ -33,8 +74,9 @@ class Quadruples {
       operator,
       location
     );
-    this.quads.enqueue([operator, leftOperand, rightOperand, { id, type }]);
-    this.operands.push({ id, type, location });
+    const resultOperand = { id, type, location };
+    this.quads.enqueue([operator, leftOperand, rightOperand, resultOperand]);
+    this.operands.push(resultOperand);
   }
 }
 
