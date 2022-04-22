@@ -1,0 +1,17 @@
+program TEST_7 {
+    if (5 > 10) {
+        write(1 + 1);
+        if (1 != 2) {
+            write(1 != 2);
+        }
+    } elif (10 == 20) {
+        write(2 + 2);
+    } else {
+        while (1 == 1) {
+            if (1 != 2) {
+                write(10 + 1);
+            }
+        }
+    }
+    write(4 + 1);
+}
