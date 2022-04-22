@@ -23,6 +23,16 @@
 [/]{2}(.|\n|\r)+?[/]{2} {}
 
 /* Lexical grammar */
+/* RELATIONAL_OP */
+/* L1 */
+"=="                   { return "EQUALS"; }
+"!="                   { return "NOT_EQUALS"; }
+/* L2 */
+"<"                    { return "LT"; }
+"<="                   { return "LTE"; }
+">"                    { return "GT"; }
+">="                   { return "GTE"; }
+
 /* BOOLEAN_OP */
 /* L1 */
 "||"                   { return "BOOLEAN_OR"; }
@@ -52,16 +62,6 @@
 "*"                    { return "MULTIPLICATION"; }
 "/"                    { return "DIVISION"; }
 "%"                    { return "MODULO"; }
-
-/* RELATIONAL_OP */
-/* L1 */
-"=="                   { return "EQUALS"; }
-"!="                   { return "NOT_EQUALS"; }
-/* L2 */
-"<"                    { return "LT"; }
-"<="                   { return "LTE"; }
-">"                    { return "GT"; }
-">="                   { return "GTE"; }
 
 /* ASSIGNMENT_OP */
 /* L1 */
@@ -196,22 +196,30 @@ const_type:
     CONST_BOOLEAN;
 
 /* DECORATORS */
-@start_jump: /* empty */
-    {
-        yy.quadruples.startJump();
-    };
+@push_jump: {
+    yy.quadruples.pushJump();
+};
 
-@end_jump: /* empty */
-    {
-        yy.quadruples.endJump();
-    };
+@pop_jump: {
+    yy.quadruples.popJump();
+};
+
+@goto_t: {
+    yy.quadruples.insertGoToT();
+};
+
+@goto_f: {
+    yy.quadruples.insertGoToF();
+};
+
+@goto: {
+    yy.quadruples.insertGoTo();
+};
 
 program:
     program_1 PROGRAM ID block {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        for (const quad of yy.quadruples.quads) {
-            console.log(quad);
-        }
+        console.table(yy.quadruples.quads);
     };
 
 program_1: /* empty */
@@ -308,11 +316,11 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @start_jump block @end_jump condition_1;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @pop_jump condition_1;
 
 condition_1: /* empty */
     |
-    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @start_jump block @end_jump condition_1 |
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @pop_jump condition_1 |
     ELSE block;
 
 for_loop:
@@ -330,9 +338,8 @@ for_loop_3:
     /* EMPTY */ |
     assign;
 
-
 while_loop:
-    WHILE OPEN_PARENTHESIS expression CLOSE_PARENTHESIS block;
+    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @goto;
 
 function_call:
     ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS |

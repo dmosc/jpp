@@ -1,12 +1,16 @@
 const { TYPES, TTO_CUBE, OPCODES } = require('./constants');
-const { Stack, Queue } = require('datastructures-js');
-const { nanoid } = require('nanoid');
+const { Stack } = require('datastructures-js');
 
 class Quadruples {
   constructor() {
     this.quads = [];
     this.jumps = new Stack();
     this.operands = new Stack();
+    this.assignableAddress = 0;
+  }
+
+  #getAddress() {
+    return this.assignableAddress++;
   }
 
   processOperand(operand) {
@@ -15,7 +19,7 @@ class Quadruples {
   }
 
   processOperator(operator) {
-    const id = nanoid(5);
+    const id = this.#getAddress();
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
       this.operands.pop(),
@@ -29,13 +33,36 @@ class Quadruples {
     this.operands.push({ id, type });
   }
 
-  startJump() {
+  pushJump() {
     this.jumps.push(this.quads.length);
-    this.quads.push([OPCODES.GOTO_F, undefined, undefined, undefined]);
   }
 
-  endJump() {
+  popJump() {
     const jump = this.jumps.pop();
+    this.quads[jump][3] = this.quads.length;
+  }
+
+  insertGoToT() {
+    this.quads.push([
+      OPCODES.GOTO_T,
+      this.quads[this.quads.length - 1][3],
+      null,
+      null,
+    ]);
+  }
+
+  insertGoToF() {
+    this.quads.push([
+      OPCODES.GOTO_F,
+      this.quads[this.quads.length - 1][3],
+      null,
+      null,
+    ]);
+  }
+
+  insertGoTo() {
+    const jump = this.jumps.pop();
+    this.quads.push([OPCODES.GOTO, null, null, this.jumps.pop()]);
     this.quads[jump][3] = this.quads.length;
   }
 }
