@@ -176,10 +176,18 @@ assignment_op_l1:
 
 /* TYPE */
 type_s:
-    INT |
-    FLOAT |
-    STRING |
-    BOOL;
+    INT {
+        yy.quadruples.currentType = yy.constants.TYPES.INT;
+    } |
+    FLOAT {
+        yy.quadruples.currentType = yy.constants.TYPES.FLOAT;
+    } |
+    STRING {
+        yy.quadruples.currentType = yy.constants.TYPES.STRING;
+    } |
+    BOOL {
+        yy.quadruples.currentType = yy.constants.TYPES.BOOL;
+    };
 
 type_c:
     ID;
@@ -187,10 +195,10 @@ type_c:
 /* CONST */
 const_type:
     CONST_INT {
-        yy.quadruples.processOperand({ data: $1, type: yy.constants.TYPES.INT });
+        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.INT });
     } |
     CONST_FLOAT {
-        yy.quadruples.processOperand({ data: $1, type: yy.constants.TYPES.FLOAT });
+        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.FLOAT });
     } |
     CONST_STRING |
     CONST_BOOLEAN;
@@ -201,11 +209,23 @@ const_type:
 };
 
 @pop_jump: {
-    yy.quadruples.popJump();
+    yy.quadruples.popJumpN(0);
 };
 
-@goto_t: {
-    yy.quadruples.insertGoToT();
+@pop_jump_n1: {
+    yy.quadruples.popJumpN(1);
+};
+
+@pop_all_jumps: {
+    yy.quadruples.popAllJumps();
+};
+
+@push_scope: {
+    yy.quadruples.pushScope();
+};
+
+@pop_scope: {
+    yy.quadruples.popScope();
 };
 
 @goto_f: {
@@ -214,6 +234,10 @@ const_type:
 
 @goto: {
     yy.quadruples.insertGoTo();
+};
+
+@pop_loop_jump: {
+    yy.quadruples.popLoopJump();
 };
 
 program:
@@ -229,7 +253,7 @@ program_1: /* empty */
     class program_1;
 
 block:
-    OPEN_CURLY_BRACKET block_1 CLOSE_CURLY_BRACKET;
+    @push_scope OPEN_CURLY_BRACKET block_1 CLOSE_CURLY_BRACKET @pop_scope;
 
 block_1: /* empty */
     |
@@ -254,14 +278,26 @@ function_1:
     VOID;
 
 variable_declare:
-    ID |
-        ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET |
-        ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET;
+    ID {
+        yy.quadruples.processVariable($1, yy.quadruples.currentType, []);
+    } |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
+        yy.quadruples.processVariable($1, yy.quadruples.currentType, [$3]);
+    } |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
+        yy.quadruples.processVariable($1, yy.quadruples.currentType, [$3, $6]);
+    };
 
 variable:
-    ID |
-    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET |
-    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET;
+    ID {
+        yy.quadruples.processVariableOperand($1, []);
+    } |
+    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
+        yy.quadruples.processVariableOperand($1, [$3]);
+    } |
+    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
+        yy.quadruples.processVariableOperand($1, [$3, $6]);
+    };
 
 vars:
     VAR type_s variable_declare vars_1 SEMICOLON |
@@ -316,11 +352,11 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @pop_jump condition_1;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |
-    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @pop_jump condition_1 |
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @push_jump @goto @pop_jump_n1 condition_1 |
     ELSE block;
 
 for_loop:
@@ -339,7 +375,7 @@ for_loop_3:
     assign;
 
 while_loop:
-    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @goto;
+    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @goto @pop_jump @pop_loop_jump;
 
 function_call:
     ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS |

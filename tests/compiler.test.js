@@ -30,6 +30,16 @@ const testMap = [
     description: 'Arithmetic tests',
     error: false,
   },
+  {
+    name: 'test6',
+    description: 'Arithmetic and bitwise operations',
+    error: false,
+  },
+  {
+    name: 'test7',
+    description: 'Variables in expression',
+    error: false,
+  },
 ];
 
 test.each(testMap)('Compile $name ($description)', ({ name, error }) => {
