@@ -1,17 +1,14 @@
 program TEST_7 {
-    if (5 > 10) {
+    var int a, b;
+    if (a == 1) {
+        var int a;
         write(1 + 1);
-        if (1 != 2) {
-            write(1 != 2);
-        }
-    } elif (10 == 20) {
+    } elif (b != 3) {
         write(2 + 2);
     } else {
-        while (1 == 1) {
-            if (1 != 2) {
-                write(10 + 1);
-            }
+        while (a < b) {
+            write(4 + 4);
+            a = a + 1;
         }
     }
-    write(4 + 1);
 }
