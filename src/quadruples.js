@@ -1,10 +1,11 @@
-const { TYPES, TTO_CUBE, OPCODES } = require('./constants');
+const { TYPES, TTO_CUBE, OPCODES, OPERATORS} = require('./constants');
 const { Stack } = require('datastructures-js');
 
 class Quadruples {
   constructor() {
     this.quads = [];
-    this.scopes = [{}]; // 0th scope is the global scope.
+    this.scopes = [{ _parent: -1 }];
+    this.scope = this.scopes[0]; // 0th scope is the global scope.
     this.jumps = new Stack();
     this.operands = new Stack();
     this.assignableAddress = 0;
@@ -23,14 +24,19 @@ class Quadruples {
 
   processVariableOperand(alias, dimensions) {
     dimensions = dimensions.map(Number);
-    for (let i = this.scopes.length - 1; i >= 0; --i) {
-      const scope = this.scopes[i];
+    let scope = this.scope;
+    while (scope) {
       if (scope[alias]?.dimensions.length === dimensions.length) {
         this.operands.push(scope[alias]);
         return;
       }
+      scope = this.scopes[scope._parent];
     }
-    throw new Error(`Invalid variable as operand: ${alias}${dimensions.length ? `[${dimensions.join('][')}]` : ''}`);
+    throw new Error(
+      `Invalid variable as operand: ${alias}${
+        dimensions.length ? `[${dimensions.join('][')}]` : ''
+      }`
+    );
   }
 
   processOperator(operator) {
@@ -39,24 +45,36 @@ class Quadruples {
       this.operands.pop(),
       this.operands.pop(),
     ];
-    const type = TTO_CUBE.getType(
-      rightOperand?.type,
-      leftOperand?.type,
-      operator
-    );
-    this.quads.push([operator, leftOperand, rightOperand, { address, type }]);
-    this.operands.push({ address, type });
+    const memSlot = {
+      address: this.#getAddress(),
+      type: TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator),
+    };
+    if (operator === OPERATORS.ASSIGN) memSlot.address = leftOperand?.address;
+    this.quads.push([operator, leftOperand, rightOperand, memSlot]);
+    this.operands.push(memSlot);
   }
 
   processVariable(alias, type, dimensions) {
-    const scope = this.scopes[this.scopes.length - 1];
-    if (!alias || !dimensions || scope[alias] || !TYPES[type]) {
+    if (!alias || !dimensions || this.scope[alias] || !TYPES[type]) {
       throw new Error(`Can\'t instantiate variable ${alias}`);
     }
-    scope[alias] = {
+    this.scope[alias] = {
       type,
       address: this.#getAddress(),
       dimensions: dimensions.map(Number),
+      isCallable: false,
+    };
+  }
+
+  processFunction(alias, type) {
+    type = String(type).toUpperCase();
+    if (!alias || this.scope[alias] || !TYPES[type]) {
+      throw new Error(`Can\'t instantiate function ${alias}`);
+    }
+    this.scope[alias] = {
+      type,
+      address: this.#getAddress(),
+      isCallable: true,
     };
   }
 
@@ -83,11 +101,12 @@ class Quadruples {
 
   // SCOPE STACK OPERATIONS
   pushScope() {
-    this.scopes.push({});
+    this.scope = { _parent: this.scope._parent + 1 };
+    this.scopes.push(this.scope);
   }
 
   popScope() {
-    console.log(this.scopes.pop());
+    this.scope = this.scopes[this.scope._parent];
   }
 
   // OPCODE QUADRUPLE OPERATIONS
@@ -101,12 +120,7 @@ class Quadruples {
   }
 
   insertGoTo() {
-    this.quads.push([
-      OPCODES.GOTO,
-      null,
-      null,
-      null,
-    ]);
+    this.quads.push([OPCODES.GOTO, null, null, null]);
   }
 }
 

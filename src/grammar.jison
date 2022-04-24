@@ -241,7 +241,7 @@ const_type:
 };
 
 program:
-    program_1 PROGRAM ID block {
+    program_1 PROGRAM ID @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.quadruples.quads);
     };
@@ -253,7 +253,7 @@ program_1: /* empty */
     class program_1;
 
 block:
-    @push_scope OPEN_CURLY_BRACKET block_1 CLOSE_CURLY_BRACKET @pop_scope;
+    OPEN_CURLY_BRACKET block_1 CLOSE_CURLY_BRACKET;
 
 block_1: /* empty */
     |
@@ -264,14 +264,23 @@ params:
 
 params_1: /* empty */
     |
-    type_s ID params_2;
+    type_s ID params_2 {
+        yy.quadruples.processVariable($2, yy.quadruples.currentType, []);
+    };
 
 params_2: /* empty */
     |
-    COMMA type_s ID params_2;
+    COMMA type_s ID params_2 {
+        yy.quadruples.processVariable($3, yy.quadruples.currentType, []);
+    };
+
+function_declare:
+    function_1 ID {
+        yy.quadruples.processFunction($2, $1);
+    };
 
 function:
-    FUNC function_1 ID params block;
+    FUNC function_declare @push_scope params block @pop_scope;
 
 function_1:
     type_s |
@@ -335,7 +344,9 @@ destruct:
     DESTRUCT OPEN_PARENTHESIS CLOSE_PARENTHESIS block;
 
 assign:
-    variable assignment_op_l1 expression;
+    variable assignment_op_l1 expression {
+        yy.quadruples.processOperator($2);
+    };
 
 read:
     READ OPEN_PARENTHESIS variable read_1 CLOSE_PARENTHESIS SEMICOLON;
@@ -352,12 +363,12 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |
-    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @push_jump @goto @pop_jump_n1 condition_1 |
-    ELSE block;
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 |
+    ELSE @push_scope block @pop_scope;
 
 for_loop:
     FOR OPEN_PARENTHESIS for_loop_1 for_loop_2 for_loop_3 CLOSE_PARENTHESIS block;
@@ -375,7 +386,7 @@ for_loop_3:
     assign;
 
 while_loop:
-    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f block @goto @pop_jump @pop_loop_jump;
+    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @pop_jump @pop_loop_jump;
 
 function_call:
     ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS |
