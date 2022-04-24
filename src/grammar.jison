@@ -243,6 +243,7 @@ const_type:
 program:
     program_1 PROGRAM ID @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
+        console.log(yy.quadruples.scopes);
         console.table(yy.quadruples.quads);
     };
 
@@ -274,15 +275,15 @@ params_2: /* empty */
         yy.quadruples.processVariable($3, yy.quadruples.currentType, []);
     };
 
-function_declare:
-    function_1 ID {
+function:
+    FUNC function_1 @push_scope params block @pop_scope;
+
+function_1:
+    function_2 ID {
         yy.quadruples.processFunction($2, $1);
     };
 
-function:
-    FUNC function_declare @push_scope params block @pop_scope;
-
-function_1:
+function_2:
     type_s |
     VOID;
 
@@ -389,8 +390,12 @@ while_loop:
     WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @pop_jump @pop_loop_jump;
 
 function_call:
-    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS |
-    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS;
+    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
+        yy.quadruples.processFunctionCallOperand($1);
+    } |
+    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
+        yy.quadruples.processFunctionCallOperand($1);
+    };
 
 function_call_1: /* empty */
     |
@@ -409,7 +414,9 @@ statement:
     while_loop |
     for_loop |
     function_call SEMICOLON |
-    RETURN expression SEMICOLON;
+    RETURN expression SEMICOLON {
+        yy.quadruples.insertReturn();
+    };
 
 expression:
     expression_l1 |

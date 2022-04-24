@@ -1,4 +1,4 @@
-const { TYPES, TTO_CUBE, OPCODES, OPERATORS} = require('./constants');
+const { TYPES, TTO_CUBE, OPCODES, OPERATORS } = require('./constants');
 const { Stack } = require('datastructures-js');
 
 class Quadruples {
@@ -10,6 +10,7 @@ class Quadruples {
     this.operands = new Stack();
     this.assignableAddress = 0;
     this.currentType = undefined;
+    this.currentFunction = undefined;
   }
 
   #getAddress() {
@@ -39,6 +40,21 @@ class Quadruples {
     );
   }
 
+  processFunctionCallOperand(alias) {
+    let scope = this.scope;
+    while (scope) {
+      if (scope[alias]) {
+        for (const argument of scope[alias].arguments) {
+          this.quads.push([OPERATORS.ASSIGN, argument, this.operands.pop(), argument]);
+        }
+        this.quads.push([OPCODES.GOTO, null, null, scope[alias].start]);
+        return;
+      }
+      scope = this.scopes[scope._parent];
+    }
+    throw new Error(`Invalid function call as operand: ${alias}`);
+  }
+
   processOperator(operator) {
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
@@ -61,8 +77,10 @@ class Quadruples {
       type,
       address: this.#getAddress(),
       dimensions: dimensions.map(Number),
-      isCallable: false,
     };
+    if (this.currentFunction) {
+      this.currentFunction.arguments.push(this.scope[alias]);
+    }
   }
 
   processFunction(alias, type) {
@@ -73,8 +91,10 @@ class Quadruples {
     this.scope[alias] = {
       type,
       address: this.#getAddress(),
-      isCallable: true,
+      arguments: [],
+      start: this.quads.length,
     };
+    this.currentFunction = this.scope[alias];
   }
 
   // JUMP STACK OPERATIONS
@@ -120,6 +140,21 @@ class Quadruples {
 
   insertGoTo() {
     this.quads.push([OPCODES.GOTO, null, null, null]);
+  }
+
+  insertReturn() {
+    const value = this.quads[this.quads.length - 1][3];
+    if (value.type === this.currentFunction.type) {
+      this.quads.push([
+        OPCODES.RETURN,
+        null,
+        null,
+        this.quads[this.quads.length - 1][3],
+      ]);
+      this.currentFunction = undefined;
+    } else {
+      throw new Error(`Function must return type: ${this.currentFunction.type}`);
+    }
   }
 }
 

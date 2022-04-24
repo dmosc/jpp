@@ -1,5 +1,8 @@
+func int test(int a, int b) {
+    a = a + b;
+    return a;
+}
+
 program TEST_8 {
-    var int c;
-    c = 5;
-    c = c + 1;
+    test(1, 2);
 }
