@@ -1,0 +1,5 @@
+program TEST_8 {
+    var int c;
+    c = 5;
+    c = c + 1;
+}
