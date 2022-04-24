@@ -45,14 +45,10 @@ class Quadruples {
       this.operands.pop(),
       this.operands.pop(),
     ];
-    console.log(rightOperand?.type, leftOperand?.type, operator);
-    const type = TTO_CUBE.getType(
-      rightOperand?.type,
-      leftOperand?.type,
-      operator
-    );
-
-    let memSlot = { address, type };
+    const memSlot = {
+      address: this.#getAddress(),
+      type: TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator),
+    };
     if (operator === OPERATORS.ASSIGN) memSlot.address = leftOperand?.address;
     this.quads.push([operator, leftOperand, rightOperand, memSlot]);
     this.operands.push(memSlot);
