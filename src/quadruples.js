@@ -40,7 +40,6 @@ class Quadruples {
   }
 
   processOperator(operator) {
-    const address = this.#getAddress();
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
       this.operands.pop(),
