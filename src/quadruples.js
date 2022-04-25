@@ -148,13 +148,13 @@ class Quadruples {
   }
 
   insertReturn() {
-    const value = this.quads[this.quads.length - 1][3];
+    const value = this.operands.pop();
     if (value.type === this.currentFunction.type) {
       this.quads.push([
         OPCODES.RETURN,
         null,
         null,
-        this.quads[this.quads.length - 1][3],
+        value,
       ]);
       this.currentFunction = undefined;
     } else {
