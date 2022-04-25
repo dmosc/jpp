@@ -77,6 +77,7 @@ class Quadruples {
       type,
       address: this.#getAddress(),
       dimensions: dimensions.map(Number),
+      alias,
     };
     if (this.currentFunction) {
       this.currentFunction.arguments.push(this.scope[alias]);
@@ -129,6 +130,10 @@ class Quadruples {
   }
 
   // OPCODE QUADRUPLE OPERATIONS
+  insertProgramInit() {
+    this.quads.push([OPCODES.INIT, null, null, null]);
+  }
+
   insertGoToF() {
     this.quads.push([
       OPCODES.GOTO_F,

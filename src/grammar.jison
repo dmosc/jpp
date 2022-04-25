@@ -241,10 +241,17 @@ const_type:
 };
 
 program:
-    program_1 PROGRAM ID @push_scope block @pop_scope {
+    program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.log(yy.quadruples.scopes);
-        console.table(yy.quadruples.quads);
+        for (const quad of yy.quadruples.quads) {
+            console.log(quad);
+        }
+    };
+
+program_init:
+    PROGRAM ID {
+        yy.quadruples.insertProgramInit();
     };
 
 program_1: /* empty */

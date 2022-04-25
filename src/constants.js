@@ -10,6 +10,7 @@ const OPCODES = Object.freeze({
   GOTO_T: 'GOTO_T',
   GOTO_F: 'GOTO_F',
   RETURN: 'RETURN',
+  INIT: 'INIT',
 });
 
 const OPERATORS = Object.freeze({
