@@ -1,0 +1,9 @@
+program TEST_8 {
+    var int i, j;
+
+    for (i = 0; i < 10; i = i + 1) {
+        for (j = i; j < 10; j = j + 1) {
+            // print? //
+        }
+    }
+}

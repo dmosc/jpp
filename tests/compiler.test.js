@@ -2,7 +2,7 @@ const { parser } = require('../src/compiler');
 const { readFileSync } = require('fs');
 const { join } = require('path');
 
-global.__basedir = join(__dirname, "..", "src");
+global.__basedir = join(__dirname, '..', 'src');
 
 const testMap = [
   {
@@ -38,6 +38,11 @@ const testMap = [
   {
     name: 'test7',
     description: 'Variables in expression',
+    error: false,
+  },
+  {
+    name: 'test9',
+    description: 'For loop',
     error: false,
   },
 ];

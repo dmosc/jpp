@@ -379,7 +379,7 @@ condition_1: /* empty */
     ELSE @push_scope block @pop_scope;
 
 for_loop:
-    FOR OPEN_PARENTHESIS for_loop_1 for_loop_2 for_loop_3 CLOSE_PARENTHESIS block;
+    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f for_loop_3 CLOSE_PARENTHESIS @push_scope block @goto @pop_jump @pop_loop_jump @pop_scope @pop_scope;
 
 for_loop_1:
     SEMICOLON |
