@@ -45,7 +45,8 @@ class Quadruples {
     while (scope) {
       if (scope[alias]) {
         for (const argument of scope[alias].arguments) {
-          this.quads.push([OPERATORS.ASSIGN, argument, this.operands.pop(), argument]);
+          const operand = this.operands.pop();
+          this.quads.push([OPERATORS.ASSIGN, argument, operand, argument]);
         }
         this.quads.push([OPCODES.GOTO, null, null, scope[alias].start]);
         return;
