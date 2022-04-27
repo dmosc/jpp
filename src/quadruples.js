@@ -45,7 +45,12 @@ class Quadruples {
     while (scope) {
       if (scope[alias]) {
         for (const argument of scope[alias].arguments) {
-          this.quads.push([OPERATORS.ASSIGN, argument, this.operands.pop(), argument]);
+          this.quads.push([
+            OPERATORS.ASSIGN,
+            argument,
+            this.operands.pop(),
+            argument,
+          ]);
         }
         this.quads.push([OPCODES.GOTO, null, null, scope[alias].start]);
         return;
@@ -115,8 +120,12 @@ class Quadruples {
     while (!this.jumps.isEmpty()) this.popJumpN(0);
   }
 
-  popLoopJump() {
-    this.quads[this.quads.length - 1][3] = this.jumps.pop();
+  popLoopJumpN(n) {
+    const tempJumps = new Stack();
+    while (n--) tempJumps.push(this.jumps.pop());
+    const jump = this.jumps.pop();
+    this.quads[this.quads.length - 1][3] = jump;
+    while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
   }
 
   // SCOPE STACK OPERATIONS
@@ -150,15 +159,12 @@ class Quadruples {
   insertReturn() {
     const value = this.operands.pop();
     if (value.type === this.currentFunction.type) {
-      this.quads.push([
-        OPCODES.RETURN,
-        null,
-        null,
-        value,
-      ]);
+      this.quads.push([OPCODES.RETURN, null, null, value]);
       this.currentFunction = undefined;
     } else {
-      throw new Error(`Function must return type: ${this.currentFunction.type}`);
+      throw new Error(
+        `Function must return type: ${this.currentFunction.type}`
+      );
     }
   }
 }

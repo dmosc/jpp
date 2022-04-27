@@ -216,6 +216,14 @@ const_type:
     yy.quadruples.popJumpN(1);
 };
 
+@pop_jump_n2: {
+    yy.quadruples.popJumpN(2);
+};
+
+@pop_jump_n3: {
+    yy.quadruples.popJumpN(3);
+};
+
 @pop_all_jumps: {
     yy.quadruples.popAllJumps();
 };
@@ -237,13 +245,27 @@ const_type:
 };
 
 @pop_loop_jump: {
-    yy.quadruples.popLoopJump();
+    yy.quadruples.popLoopJumpN(0);
 };
+
+@pop_loop_jump_n1: {
+    yy.quadruples.popLoopJumpN(1);
+};
+
+@pop_loop_jump_n2: {
+    yy.quadruples.popLoopJumpN(2);
+};
+
+@pop_loop_jump_n3: {
+    yy.quadruples.popLoopJumpN(3);
+};
+
 
 program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.log(yy.quadruples.scopes);
+        console.log('----------------');
         for (const quad of yy.quadruples.quads) {
             console.log(quad);
         }
@@ -379,7 +401,7 @@ condition_1: /* empty */
     ELSE @push_scope block @pop_scope;
 
 for_loop:
-    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f for_loop_3 CLOSE_PARENTHESIS @push_scope block @goto @pop_jump @pop_loop_jump @pop_scope @pop_scope;
+    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f @push_jump @goto @push_jump for_loop_3 CLOSE_PARENTHESIS @push_scope @goto @pop_loop_jump_n3 @pop_jump_n1 block @goto @pop_loop_jump @pop_jump @pop_scope @pop_scope;
 
 for_loop_1:
     SEMICOLON |
