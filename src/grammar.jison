@@ -224,6 +224,10 @@ const_type:
     yy.quadruples.popJumpN(3);
 };
 
+@push_delimitter: {
+    yy.quadruples.pushDelimitter();
+};
+
 @pop_all_jumps: {
     yy.quadruples.popAllJumps();
 };
@@ -269,6 +273,7 @@ program:
         for (const quad of yy.quadruples.quads) {
             console.log(quad);
         }
+        console.table(yy.quadruples.quads)
     };
 
 program_init:
@@ -393,7 +398,7 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimitter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |

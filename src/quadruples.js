@@ -113,7 +113,10 @@ class Quadruples {
   }
 
   popAllJumps() {
-    while (!this.jumps.isEmpty()) this.popJumpN(0);
+    while (!this.jumps.isEmpty() && this.jumps.peek() !== -1) this.popJumpN(0);
+    if (this.jumps.pop() !== -1) {
+      throw new Error('Called popAllJumps and there was no delimitter');
+    }
   }
 
   popLoopJumpN(n) {
@@ -122,6 +125,10 @@ class Quadruples {
     const jump = this.jumps.pop();
     this.quads[this.quads.length - 1][3] = jump;
     while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
+  }
+
+  pushDelimitter() {
+    this.jumps.push(-1);
   }
 
   // SCOPE STACK OPERATIONS
