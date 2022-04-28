@@ -406,7 +406,7 @@ condition_1: /* empty */
     ELSE @push_scope block @pop_scope;
 
 for_loop:
-    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f @push_jump @goto @push_jump for_loop_3 CLOSE_PARENTHESIS @push_scope @goto @pop_loop_jump_n3 @pop_jump_n1 block @goto @pop_loop_jump @pop_jump @pop_scope @pop_scope;
+    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f @push_jump @goto @push_jump for_loop_3 CLOSE_PARENTHESIS @goto @pop_loop_jump_n3 @pop_jump_n1 block @goto @pop_loop_jump @pop_jump @pop_scope;
 
 for_loop_1:
     SEMICOLON |
