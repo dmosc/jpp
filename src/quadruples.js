@@ -1,5 +1,6 @@
 const { TYPES, TTO_CUBE, OPCODES, OPERATORS } = require('./constants');
 const { Stack } = require('datastructures-js');
+const { optimize } = require('./optimizer');
 
 class Quadruples {
   constructor() {
@@ -169,6 +170,10 @@ class Quadruples {
         `Function must return type: ${this.currentFunction.type}`
       );
     }
+  }
+
+  optimizeIR() {
+    optimize(this);
   }
 }
 

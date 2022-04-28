@@ -274,6 +274,7 @@ program:
             console.log(quad);
         }
         console.table(yy.quadruples.quads)
+        yy.quadruples.optimizeIR();
     };
 
 program_init:
