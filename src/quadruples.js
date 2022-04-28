@@ -115,7 +115,7 @@ class Quadruples {
   popAllJumps() {
     while (!this.jumps.isEmpty() && this.jumps.peek() !== -1) this.popJumpN(0);
     if (this.jumps.pop() !== -1) {
-      throw new Error('Called popAllJumps and there was no delimitter');
+      throw new Error('Called popAllJumps and there was no delimiter');
     }
   }
 
@@ -127,7 +127,7 @@ class Quadruples {
     while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
   }
 
-  pushDelimitter() {
+  pushDelimiter() {
     this.jumps.push(-1);
   }
 

@@ -224,8 +224,8 @@ const_type:
     yy.quadruples.popJumpN(3);
 };
 
-@push_delimitter: {
-    yy.quadruples.pushDelimitter();
+@push_delimiter: {
+    yy.quadruples.pushDelimiter();
 };
 
 @pop_all_jumps: {
@@ -398,7 +398,7 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimitter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |
