@@ -113,11 +113,22 @@ class Quadruples {
   }
 
   popAllJumps() {
-    while (!this.jumps.isEmpty()) this.popJumpN(0);
+    while (!this.jumps.isEmpty() && this.jumps.peek() !== -1) this.popJumpN(0);
+    if (this.jumps.pop() !== -1) {
+      throw new Error('Called popAllJumps and there was no delimiter');
+    }
   }
 
-  popLoopJump() {
-    this.quads[this.quads.length - 1][3] = this.jumps.pop();
+  popLoopJumpN(n) {
+    const tempJumps = new Stack();
+    while (n--) tempJumps.push(this.jumps.pop());
+    const jump = this.jumps.pop();
+    this.quads[this.quads.length - 1][3] = jump;
+    while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
+  }
+
+  pushDelimiter() {
+    this.jumps.push(-1);
   }
 
   // SCOPE STACK OPERATIONS
@@ -151,15 +162,12 @@ class Quadruples {
   insertReturn() {
     const value = this.operands.pop();
     if (value.type === this.currentFunction.type) {
-      this.quads.push([
-        OPCODES.RETURN,
-        null,
-        null,
-        value,
-      ]);
+      this.quads.push([OPCODES.RETURN, null, null, value]);
       this.currentFunction = undefined;
     } else {
-      throw new Error(`Function must return type: ${this.currentFunction.type}`);
+      throw new Error(
+        `Function must return type: ${this.currentFunction.type}`
+      );
     }
   }
 }
