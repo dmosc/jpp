@@ -49,7 +49,7 @@ class Quadruples {
           const operand = this.operands.pop();
           this.quads.push([OPERATORS.ASSIGN, argument, operand, argument]);
         }
-        this.quads.push([OPCODES.GOTO, null, null, scope[alias].start]);
+        this.quads.push([OPCODES.CALL, null, null, scope[alias].start]);
         return;
       }
       scope = this.scopes[scope._parent];

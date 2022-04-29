@@ -6,6 +6,7 @@ const TYPES = Object.freeze({
 });
 
 const OPCODES = Object.freeze({
+  CALL: 'CALL',
   GOTO: 'GOTO',
   GOTO_T: 'GOTO_T',
   GOTO_F: 'GOTO_F',
