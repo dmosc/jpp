@@ -26,7 +26,8 @@ class Quadruples {
 
   // LOADERS
   processConstantOperand(operand) {
-    if (operand.data && TYPES[operand.type]) this.operands.push(operand);
+    if (operand.data !== undefined && TYPES[operand.type])
+      this.operands.push(operand);
     else throw new Error('Invalid operand format');
   }
 
