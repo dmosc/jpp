@@ -14,7 +14,7 @@ class Node {
       this.rootNode = true;
     }
 
-    if (this.operator === OPCODES.GOTO_F) {
+    if (this.operator === OPCODES.GOTO_F || this.operator === OPCODES.CALL) {
       this.goto = `node${resultOperand}`;
       this.connections = [this.goto, `node${nodeIndex + 1}`];
     } else if (this.operator === OPCODES.GOTO_T) {
@@ -100,7 +100,14 @@ class CodeGraph {
         const dest = node.connections[0];
 
         const destInNodes = this.inConnections[dest];
-        if (destInNodes.length === 1) {
+        let destInNodeCount = 0;
+        for (let i = 0; i < destInNodes.length; i++) {
+          if (!this.nodes[destInNodes[i]].goto) {
+            destInNodeCount++;
+          }
+        }
+
+        if (destInNodeCount === 0) {
           this.removeNode(currentNodeId);
         }
       }
