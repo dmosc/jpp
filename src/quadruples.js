@@ -1,4 +1,10 @@
-const { TYPES, TTO_CUBE, OPCODES, OPERATORS } = require('./constants');
+const {
+  TYPES,
+  TTO_CUBE,
+  OPCODES,
+  OPERATORS,
+  OPERANDS,
+} = require('./constants');
 const { Stack } = require('datastructures-js');
 const { optimize } = require('./optimizer');
 
@@ -58,13 +64,26 @@ class Quadruples {
   }
 
   processOperator(operator) {
+    const popLeft = OPERANDS[operator] === 2;
+
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
-      this.operands.pop(),
+      popLeft && this.operands.pop(),
     ];
+    let type;
+
+    try {
+      type = TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator);
+    } catch (err) {
+      console.table(this.quads);
+      throw new Error(
+        `Could not get types from ${rightOperand?.type} ${operator} ${leftOperand?.type}`
+      );
+    }
+
     const memSlot = {
       address: this.#getAddress(),
-      type: TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator),
+      type,
     };
     if (operator === OPERATORS.ASSIGN) memSlot.address = leftOperand?.address;
     this.quads.push([operator, leftOperand, rightOperand, memSlot]);
