@@ -195,10 +195,10 @@ type_c:
 /* CONST */
 const_type:
     CONST_INT {
-        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.INT });
+        yy.quadruples.processConstantOperand({ data: parseInt($1, 10), type: yy.constants.TYPES.INT });
     } |
     CONST_FLOAT {
-        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.FLOAT });
+        yy.quadruples.processConstantOperand({ data: parseFloat($1, 10), type: yy.constants.TYPES.FLOAT });
     } |
     CONST_STRING |
     CONST_BOOLEAN;

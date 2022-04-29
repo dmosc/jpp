@@ -57,8 +57,8 @@ const OPERATOR_FUNCTIONS = Object.freeze({
   [OPERATORS.MULTIPLICATION]: (op1, op2) => op1 * op2,
   [OPERATORS.DIVISION]: (op1, op2) => op1 / op2,
   [OPERATORS.MODULO]: (op1, op2) => op1 % op2,
-  [OPERATORS.BOOLEAN_NOT]: (op1) => !op1,
-  [OPERATORS.BITWISE_NOT]: (op1) => ~op1,
+  [OPERATORS.BOOLEAN_NOT]: (_op1, op2) => !op2,
+  [OPERATORS.BITWISE_NOT]: (_op1, op2) => ~op2,
 });
 
 const OPERANDS = Object.freeze({

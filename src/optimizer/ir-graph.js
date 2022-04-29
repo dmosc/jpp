@@ -1,5 +1,5 @@
 const { Stack } = require('datastructures-js');
-const { OPCODES } = require('../constants');
+const { OPCODES, OPERANDS, OPERATOR_FUNCTIONS } = require('../constants');
 
 class Node {
   constructor([operator, leftOperand, rightOperand, resultOperand], nodeIndex) {
@@ -53,6 +53,7 @@ class CodeGraph {
     }
 
     this.optimizeJumps();
+    this.optimizeConstants();
   }
 
   removeNode(nodeId) {
@@ -85,17 +86,7 @@ class CodeGraph {
   }
 
   optimizeJumps() {
-    const visited = new Set([this.rootNode.nodeId]);
-    const toVisit = new Stack([this.rootNode.nodeId]);
-
-    while (!toVisit.isEmpty()) {
-      const currentNodeId = toVisit.pop();
-      const node = this.nodes[currentNodeId];
-
-      if (!node) {
-        continue;
-      }
-
+    this.optimizePart((currentNodeId, node) => {
       if (node.operator === OPCODES.GOTO) {
         const dest = node.connections[0];
 
@@ -111,6 +102,65 @@ class CodeGraph {
           this.removeNode(currentNodeId);
         }
       }
+    });
+  }
+
+  optimizeConstants() {
+    const resolvedOperations = {};
+
+    this.optimizePart((currentNodeId, node) => {
+      if (
+        node.rightOperand?.address !== undefined &&
+        resolvedOperations[`${node.rightOperand.address}`]
+      ) {
+        node.rightOperand = resolvedOperations[`${node.rightOperand.address}`];
+      } else if (
+        node.leftOperand?.address !== undefined &&
+        resolvedOperations[`${node.leftOperand.address}`]
+      ) {
+        node.leftOperand = resolvedOperations[`${node.leftOperand.address}`];
+      }
+
+      const opFunc = OPERATOR_FUNCTIONS[node.operator];
+      if (!opFunc) {
+        return;
+      }
+
+      const rightOperand = node.rightOperand;
+      if (!rightOperand?.data) {
+        return;
+      }
+
+      const leftOperand = node.leftOperand;
+      if (OPERANDS[node.operator] === 2 && !leftOperand?.data) {
+        return;
+      }
+
+      const res = {
+        type: node.resultOperand.type,
+        data: opFunc(leftOperand?.data, rightOperand.data),
+      };
+      const resAddress = node.resultOperand.address;
+      resolvedOperations[resAddress] = res;
+
+      this.removeNode(currentNodeId);
+    });
+  }
+
+  optimizePart(optimizeNode) {
+    const nodeSize = Object.keys(this.nodes).length;
+    const visited = new Set([this.rootNode.nodeId]);
+    const toVisit = new Stack([this.rootNode.nodeId]);
+
+    while (!toVisit.isEmpty()) {
+      const currentNodeId = toVisit.pop();
+      const node = this.nodes[currentNodeId];
+
+      if (!node) {
+        continue;
+      }
+
+      optimizeNode(currentNodeId, node);
 
       node.connections?.forEach((connection) => {
         if (!visited.has(connection)) {
@@ -118,6 +168,10 @@ class CodeGraph {
           toVisit.push(connection);
         }
       });
+    }
+
+    if (Object.keys(this.nodes).length !== nodeSize) {
+      this.optimizePart(optimizeNode);
     }
   }
 
