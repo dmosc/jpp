@@ -1,35 +1,11 @@
 const { Stack } = require('datastructures-js');
-const { OPCODES, OPERANDS, OPERATOR_FUNCTIONS } = require('../constants');
+const { Node } = require('./node');
+const { optimize: jumpThreadingOptimizer } = require('./jump-threading');
+const { optimize: constantFolding } = require('./constant-folding');
 
-class Node {
-  constructor([operator, leftOperand, rightOperand, resultOperand], nodeIndex) {
-    this.operator = operator;
-    this.leftOperand = leftOperand;
-    this.rightOperand = rightOperand;
-    this.resultOperand = resultOperand;
+const optimizers = [jumpThreadingOptimizer, constantFolding];
 
-    this.nodeId = `node${nodeIndex}`;
-
-    if (this.operator === OPCODES.INIT) {
-      this.rootNode = true;
-    }
-
-    if (this.operator === OPCODES.GOTO_F || this.operator === OPCODES.CALL) {
-      this.goto = `node${resultOperand}`;
-      this.connections = [this.goto, `node${nodeIndex + 1}`];
-    } else if (this.operator === OPCODES.GOTO_T) {
-      this.goto = `node${resultOperand}`;
-      this.connections = [`node${nodeIndex + 1}`, this.goto];
-    } else if (this.operator === OPCODES.GOTO) {
-      this.goto = `node${resultOperand}`;
-      this.connections = [this.goto];
-    } else if (this.operator !== OPCODES.RETURN) {
-      this.connections = [`node${nodeIndex + 1}`];
-    }
-  }
-}
-
-class CodeGraph {
+class ControlFlowGraph {
   constructor(quads) {
     this.nodes = {};
     this.inConnections = {};
@@ -52,8 +28,9 @@ class CodeGraph {
       });
     }
 
-    this.optimizeJumps();
-    this.optimizeConstants();
+    optimizers.forEach((optimize) => {
+      optimize(this);
+    });
   }
 
   removeNode(nodeId) {
@@ -85,69 +62,7 @@ class CodeGraph {
     delete this.nodes[nodeId];
   }
 
-  optimizeJumps() {
-    this.optimizePart((currentNodeId, node) => {
-      if (node.operator === OPCODES.GOTO) {
-        const dest = node.connections[0];
-
-        const destInNodes = this.inConnections[dest];
-        let destInNodeCount = 0;
-        for (let i = 0; i < destInNodes.length; i++) {
-          if (!this.nodes[destInNodes[i]].goto) {
-            destInNodeCount++;
-          }
-        }
-
-        if (destInNodeCount === 0) {
-          this.removeNode(currentNodeId);
-        }
-      }
-    });
-  }
-
-  optimizeConstants() {
-    const resolvedOperations = {};
-
-    this.optimizePart((currentNodeId, node) => {
-      if (
-        node.rightOperand?.address !== undefined &&
-        resolvedOperations[`${node.rightOperand.address}`]
-      ) {
-        node.rightOperand = resolvedOperations[`${node.rightOperand.address}`];
-      } else if (
-        node.leftOperand?.address !== undefined &&
-        resolvedOperations[`${node.leftOperand.address}`]
-      ) {
-        node.leftOperand = resolvedOperations[`${node.leftOperand.address}`];
-      }
-
-      const opFunc = OPERATOR_FUNCTIONS[node.operator];
-      if (!opFunc) {
-        return;
-      }
-
-      const rightOperand = node.rightOperand;
-      if (!rightOperand?.data) {
-        return;
-      }
-
-      const leftOperand = node.leftOperand;
-      if (OPERANDS[node.operator] === 2 && !leftOperand?.data) {
-        return;
-      }
-
-      const res = {
-        type: node.resultOperand.type,
-        data: opFunc(leftOperand?.data, rightOperand.data),
-      };
-      const resAddress = node.resultOperand.address;
-      resolvedOperations[resAddress] = res;
-
-      this.removeNode(currentNodeId);
-    });
-  }
-
-  optimizePart(optimizeNode) {
+  optimizePart(optimizeNodeFunc) {
     const nodeSize = Object.keys(this.nodes).length;
     const visited = new Set([this.rootNode.nodeId]);
     const toVisit = new Stack([this.rootNode.nodeId]);
@@ -160,7 +75,7 @@ class CodeGraph {
         continue;
       }
 
-      optimizeNode(currentNodeId, node);
+      optimizeNodeFunc(currentNodeId, node);
 
       node.connections?.forEach((connection) => {
         if (!visited.has(connection)) {
@@ -171,7 +86,7 @@ class CodeGraph {
     }
 
     if (Object.keys(this.nodes).length !== nodeSize) {
-      this.optimizePart(optimizeNode);
+      this.optimizePart(optimizeNodeFunc);
     }
   }
 
@@ -221,4 +136,4 @@ class CodeGraph {
   }
 }
 
-module.exports = { CodeGraph };
+module.exports = { ControlFlowGraph };

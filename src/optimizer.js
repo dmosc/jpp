@@ -1,8 +1,8 @@
-const { CodeGraph } = require('./optimizer/ir-graph');
+const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
 const optimize = (quadrulples) => {
   console.log('Optimizing code');
-  const graph = new CodeGraph(quadrulples.quads);
+  const graph = new ControlFlowGraph(quadrulples.quads);
   console.table(graph.toQuads());
 };
 
