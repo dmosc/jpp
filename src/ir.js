@@ -6,9 +6,9 @@ const {
   OPERANDS,
 } = require('./constants');
 const { Stack } = require('datastructures-js');
-const { optimize } = require('./optimizer');
+const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
-class Quadruples {
+class IntermidiateRepresentation {
   constructor() {
     this.quads = [];
     this.scopes = [{ _parent: -1 }];
@@ -193,8 +193,9 @@ class Quadruples {
   }
 
   optimizeIR() {
-    optimize(this);
+    const graph = new ControlFlowGraph(this.quads);
+    this.quads = graph.toQuads();
   }
 }
 
-module.exports = Quadruples;
+module.exports = IntermidiateRepresentation;
