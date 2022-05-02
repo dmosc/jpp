@@ -6,6 +6,7 @@ const TYPES = Object.freeze({
 });
 
 const OPCODES = Object.freeze({
+  CALL: 'CALL',
   GOTO: 'GOTO',
   GOTO_T: 'GOTO_T',
   GOTO_F: 'GOTO_F',
@@ -35,6 +36,29 @@ const OPERATORS = Object.freeze({
   ASSIGN: '=',
   BOOLEAN_NOT: '!',
   BITWISE_NOT: '~',
+});
+
+const OPERATOR_FUNCTIONS = Object.freeze({
+  [OPERATORS.BOOLEAN_OR]: (op1, op2) => op1 || op2,
+  [OPERATORS.BOOLEAN_AND]: (op1, op2) => op1 && op2,
+  [OPERATORS.BITWISE_OR]: (op1, op2) => op1 | op2,
+  [OPERATORS.BITWISE_XOR]: (op1, op2) => op1 ^ op2,
+  [OPERATORS.BITWISE_AND]: (op1, op2) => op1 & op2,
+  [OPERATORS.EQUALS]: (op1, op2) => op1 === op2,
+  [OPERATORS.NOT_EQUALS]: (op1, op2) => op1 !== op2,
+  [OPERATORS.GT]: (op1, op2) => op1 > op2,
+  [OPERATORS.GTE]: (op1, op2) => op1 >= op2,
+  [OPERATORS.LT]: (op1, op2) => op1 < op2,
+  [OPERATORS.LTE]: (op1, op2) => op1 <= op2,
+  [OPERATORS.BITWISE_LEFT_SHIFT]: (op1, op2) => op1 << op2,
+  [OPERATORS.BITWISE_RIGHT_SHIFT]: (op1, op2) => op1 >> op2,
+  [OPERATORS.PLUS]: (op1, op2) => op1 + op2,
+  [OPERATORS.MINUS]: (op1, op2) => op1 - op2,
+  [OPERATORS.MULTIPLICATION]: (op1, op2) => op1 * op2,
+  [OPERATORS.DIVISION]: (op1, op2) => op1 / op2,
+  [OPERATORS.MODULO]: (op1, op2) => op1 % op2,
+  [OPERATORS.BOOLEAN_NOT]: (_op1, op2) => !op2,
+  [OPERATORS.BITWISE_NOT]: (_op1, op2) => ~op2,
 });
 
 const OPERANDS = Object.freeze({
@@ -173,4 +197,5 @@ module.exports = {
   OPERATORS,
   OPERANDS,
   TTO_CUBE,
+  OPERATOR_FUNCTIONS,
 };

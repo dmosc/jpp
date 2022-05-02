@@ -1,12 +1,12 @@
 {
   "name": "jpp",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "main": "src/cli.js",
   "repository": "https://github.com/dmosc/jpp.git",
   "author": "dmosc <osdavrm@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node src/cli.js",
     "test": "jest test",
     "prepare": "husky install",
     "format": "lint-staged"

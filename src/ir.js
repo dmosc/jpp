@@ -1,7 +1,14 @@
-const { TYPES, TTO_CUBE, OPCODES, OPERATORS } = require('./constants');
+const {
+  TYPES,
+  TTO_CUBE,
+  OPCODES,
+  OPERATORS,
+  OPERANDS,
+} = require('./constants');
 const { Stack } = require('datastructures-js');
+const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
-class Quadruples {
+class IntermidiateRepresentation {
   constructor() {
     this.quads = [];
     this.scopes = [{ _parent: -1 }];
@@ -19,7 +26,8 @@ class Quadruples {
 
   // LOADERS
   processConstantOperand(operand) {
-    if (operand.data && TYPES[operand.type]) this.operands.push(operand);
+    if (operand.data !== undefined && TYPES[operand.type])
+      this.operands.push(operand);
     else throw new Error('Invalid operand format');
   }
 
@@ -48,7 +56,7 @@ class Quadruples {
           const operand = this.operands.pop();
           this.quads.push([OPERATORS.ASSIGN, argument, operand, argument]);
         }
-        this.quads.push([OPCODES.GOTO, null, null, scope[alias].start]);
+        this.quads.push([OPCODES.CALL, null, null, scope[alias].start]);
         return;
       }
       scope = this.scopes[scope._parent];
@@ -57,13 +65,26 @@ class Quadruples {
   }
 
   processOperator(operator) {
+    const popLeft = OPERANDS[operator] === 2;
+
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
-      this.operands.pop(),
+      popLeft && this.operands.pop(),
     ];
+    let type;
+
+    try {
+      type = TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator);
+    } catch (err) {
+      console.table(this.quads);
+      throw new Error(
+        `Could not get types from ${rightOperand?.type} ${operator} ${leftOperand?.type}`
+      );
+    }
+
     const memSlot = {
       address: this.#getAddress(),
-      type: TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator),
+      type,
     };
     if (operator === OPERATORS.ASSIGN) memSlot.address = leftOperand?.address;
     this.quads.push([operator, leftOperand, rightOperand, memSlot]);
@@ -170,6 +191,11 @@ class Quadruples {
       );
     }
   }
+
+  optimizeIR() {
+    const graph = new ControlFlowGraph(this.quads);
+    this.quads = graph.toQuads();
+  }
 }
 
-module.exports = Quadruples;
+module.exports = IntermidiateRepresentation;

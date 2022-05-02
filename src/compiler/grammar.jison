@@ -3,10 +3,10 @@
     const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const Quadruples = require(join(__basedir, 'quadruples.js'));
+        const IntermidiateRepresentation = require(join(__basedir, 'ir.js'));
         const constants = require(join(__basedir, 'constants.js'));
 
-        yy.quadruples = new Quadruples();
+        yy.ir = new IntermidiateRepresentation();
         yy.constants = constants;
     }
 %}
@@ -177,16 +177,16 @@ assignment_op_l1:
 /* TYPE */
 type_s:
     INT {
-        yy.quadruples.currentType = yy.constants.TYPES.INT;
+        yy.ir.currentType = yy.constants.TYPES.INT;
     } |
     FLOAT {
-        yy.quadruples.currentType = yy.constants.TYPES.FLOAT;
+        yy.ir.currentType = yy.constants.TYPES.FLOAT;
     } |
     STRING {
-        yy.quadruples.currentType = yy.constants.TYPES.STRING;
+        yy.ir.currentType = yy.constants.TYPES.STRING;
     } |
     BOOL {
-        yy.quadruples.currentType = yy.constants.TYPES.BOOL;
+        yy.ir.currentType = yy.constants.TYPES.BOOL;
     };
 
 type_c:
@@ -195,90 +195,93 @@ type_c:
 /* CONST */
 const_type:
     CONST_INT {
-        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.INT });
+        yy.ir.processConstantOperand({ data: parseInt($1, 10), type: yy.constants.TYPES.INT });
     } |
     CONST_FLOAT {
-        yy.quadruples.processConstantOperand({ data: $1, type: yy.constants.TYPES.FLOAT });
+        yy.ir.processConstantOperand({ data: parseFloat($1, 10), type: yy.constants.TYPES.FLOAT });
     } |
     CONST_STRING |
     CONST_BOOLEAN;
 
 /* DECORATORS */
 @push_jump: {
-    yy.quadruples.pushJump();
+    yy.ir.pushJump();
 };
 
 @pop_jump: {
-    yy.quadruples.popJumpN(0);
+    yy.ir.popJumpN(0);
 };
 
 @pop_jump_n1: {
-    yy.quadruples.popJumpN(1);
+    yy.ir.popJumpN(1);
 };
 
 @pop_jump_n2: {
-    yy.quadruples.popJumpN(2);
+    yy.ir.popJumpN(2);
 };
 
 @pop_jump_n3: {
-    yy.quadruples.popJumpN(3);
+    yy.ir.popJumpN(3);
 };
 
 @push_delimiter: {
-    yy.quadruples.pushDelimiter();
+    yy.ir.pushDelimiter();
 };
 
 @pop_all_jumps: {
-    yy.quadruples.popAllJumps();
+    yy.ir.popAllJumps();
 };
 
 @push_scope: {
-    yy.quadruples.pushScope();
+    yy.ir.pushScope();
 };
 
 @pop_scope: {
-    yy.quadruples.popScope();
+    yy.ir.popScope();
 };
 
 @goto_f: {
-    yy.quadruples.insertGoToF();
+    yy.ir.insertGoToF();
 };
 
 @goto: {
-    yy.quadruples.insertGoTo();
+    yy.ir.insertGoTo();
 };
 
 @pop_loop_jump: {
-    yy.quadruples.popLoopJumpN(0);
+    yy.ir.popLoopJumpN(0);
 };
 
 @pop_loop_jump_n1: {
-    yy.quadruples.popLoopJumpN(1);
+    yy.ir.popLoopJumpN(1);
 };
 
 @pop_loop_jump_n2: {
-    yy.quadruples.popLoopJumpN(2);
+    yy.ir.popLoopJumpN(2);
 };
 
 @pop_loop_jump_n3: {
-    yy.quadruples.popLoopJumpN(3);
+    yy.ir.popLoopJumpN(3);
 };
 
 
 program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        console.log(yy.quadruples.scopes);
+        console.log(yy.ir.scopes);
         console.log('----------------');
-        for (const quad of yy.quadruples.quads) {
+        for (const quad of yy.ir.quads) {
             console.log(quad);
         }
-        console.table(yy.quadruples.quads)
+        console.table(yy.ir.quads);
+        yy.ir.optimizeIR();
+        console.log('Optimized code');
+        console.table(yy.ir.quads);
     };
 
 program_init:
     PROGRAM ID {
-        yy.quadruples.insertProgramInit();
+        yy.ir.insertProgramInit();
     };
 
 program_1: /* empty */
@@ -300,13 +303,13 @@ params:
 params_1: /* empty */
     |
     type_s ID params_2 {
-        yy.quadruples.processVariable($2, yy.quadruples.currentType, []);
+        yy.ir.processVariable($2, yy.ir.currentType, []);
     };
 
 params_2: /* empty */
     |
     COMMA type_s ID params_2 {
-        yy.quadruples.processVariable($3, yy.quadruples.currentType, []);
+        yy.ir.processVariable($3, yy.ir.currentType, []);
     };
 
 function:
@@ -314,7 +317,7 @@ function:
 
 function_1:
     function_2 ID {
-        yy.quadruples.processFunction($2, $1);
+        yy.ir.processFunction($2, $1);
     };
 
 function_2:
@@ -323,24 +326,24 @@ function_2:
 
 variable_declare:
     ID {
-        yy.quadruples.processVariable($1, yy.quadruples.currentType, []);
+        yy.ir.processVariable($1, yy.ir.currentType, []);
     } |
     ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
-        yy.quadruples.processVariable($1, yy.quadruples.currentType, [$3]);
+        yy.ir.processVariable($1, yy.ir.currentType, [$3]);
     } |
     ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
-        yy.quadruples.processVariable($1, yy.quadruples.currentType, [$3, $6]);
+        yy.ir.processVariable($1, yy.ir.currentType, [$3, $6]);
     };
 
 variable:
     ID {
-        yy.quadruples.processVariableOperand($1, []);
+        yy.ir.processVariableOperand($1, []);
     } |
     ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
-        yy.quadruples.processVariableOperand($1, [$3]);
+        yy.ir.processVariableOperand($1, [$3]);
     } |
     ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
-        yy.quadruples.processVariableOperand($1, [$3, $6]);
+        yy.ir.processVariableOperand($1, [$3, $6]);
     };
 
 vars:
@@ -380,7 +383,7 @@ destruct:
 
 assign:
     variable assignment_op_l1 expression {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 read:
@@ -425,10 +428,10 @@ while_loop:
 
 function_call:
     ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
-        yy.quadruples.processFunctionCallOperand($1);
+        yy.ir.processFunctionCallOperand($1);
     } |
     ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
-        yy.quadruples.processFunctionCallOperand($1);
+        yy.ir.processFunctionCallOperand($1);
     };
 
 function_call_1: /* empty */
@@ -449,76 +452,76 @@ statement:
     for_loop |
     function_call SEMICOLON |
     RETURN expression SEMICOLON {
-        yy.quadruples.insertReturn();
+        yy.ir.insertReturn();
     };
 
 expression:
     expression_l1 |
     expression boolean_op_l1 expression_l1 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l1:
     expression_l2 |
     expression_l1 boolean_op_l2 expression_l2 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l2:
     expression_l3 |
     expression_l2 bitwise_op_l1 expression_l3 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l3:
     expression_l4 |
     expression_l3 bitwise_op_l2 expression_l4 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l4:
     expression_l5 |
     expression_l4 bitwise_op_l3 expression_l5 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l5:
     expression_l6 |
     expression_l5 relational_op_l1 expression_l6 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l6:
     expression_l7 |
     expression_l6 relational_op_l2 expression_l7 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l7:
     expression_l8 |
     expression_l7 bitwise_op_l4 expression_l8 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l8:
     expression_l9 |
     expression_l8 arithmetic_op_l1 expression_l9 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l9:
     expression_l10 |
     expression_l9 arithmetic_op_l2 expression_l10 {
-        yy.quadruples.processOperator($2);
+        yy.ir.processOperator($2);
     };
 
 expression_l10:
     expression_l11 |
     boolean_op_l3 expression_l11 {
-        yy.quadruples.processOperator($1);
+        yy.ir.processOperator($1);
     } |
     bitwise_op_l5 expression_l11 {
-        yy.quadruples.processOperator($1);
+        yy.ir.processOperator($1);
     };
 
 expression_l11:
