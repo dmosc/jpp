@@ -17,7 +17,7 @@
     Strings must be evaluated before comments to avoid double slashes
     in strings being detected as comments.
 */
-\".*?\"                 { return "CONST_STRING"; }
+\".*?\"                { return "CONST_STRING"; }
 
 /* COMMENTS */
 [/]{2}(.|\n|\r)+?[/]{2} {}
@@ -97,19 +97,15 @@
 "read"                 { return "READ"; }
 "write"                { return "WRITE"; }
 
-/* TYPES */
-"int"                  { return "INT"; }
+("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
 "string"               { return "STRING"; }
-"bool"                 { return "BOOL"; }
-[A-Za-z_][A-Za-z0-9_]* { return "ID"; }
+("true"|"false")       { return "CONST_BOOLEAN"; }
 
-/* CONST */
+/* EXPRESSIONS */
 [0-9]+\.[0-9]+         { return "CONST_FLOAT"; }
 [0-9]+                 { return "CONST_INT"; }
-(true|false)           { return "CONST_BOOLEAN"; }
-
-/* WHITESPACES */
+[A-Za-z_][A-Za-z0-9_]* { return "ID"; }
 [\s\t\n\r]+            {}
 
 /* UNDEFINED SYMBOLS */
@@ -186,7 +182,7 @@ type_s:
         yy.ir.currentType = yy.constants.TYPES.STRING;
     } |
     BOOL {
-        yy.ir.currentType = yy.constants.TYPES.BOOL;
+        yy.ir.currentType = yy.constants.TYPES.INT;
     };
 
 type_c:
@@ -201,7 +197,10 @@ const_type:
         yy.ir.processConstantOperand({ data: parseFloat($1, 10), type: yy.constants.TYPES.FLOAT });
     } |
     CONST_STRING |
-    CONST_BOOLEAN;
+    CONST_BOOLEAN {
+        const data = $1 === "true" ? 1 : 0;
+        yy.ir.processConstantOperand({ data, type: yy.constants.TYPES.INT });
+    };
 
 /* DECORATORS */
 @push_jump: {
@@ -268,11 +267,6 @@ const_type:
 program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        console.log(yy.ir.scopes);
-        console.log('----------------');
-        for (const quad of yy.ir.quads) {
-            console.log(quad);
-        }
         console.table(yy.ir.quads);
         yy.ir.optimizeIR();
         console.log('Optimized code');

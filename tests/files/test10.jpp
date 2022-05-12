@@ -1,18 +1,7 @@
 program TEST_7 {
-    var int a, b;
-    if (a == 1) {
-        var int a;
-        write(1 + 1);
-    } elif (b != 3) {
-        if (b == 3) {
-            write(1 + b);
-        }
-        write(2 + 2);
-    } else {
-        if (a == 2) {
-            if (b == 3) {
-                write(1 + 1);
-            }
-        }
+    var bool a;
+    a = false;
+    if (!a == a) {
+        write(a);
     }
 }
