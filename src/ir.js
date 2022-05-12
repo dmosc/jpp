@@ -8,7 +8,7 @@ const {
 const { Stack } = require('datastructures-js');
 const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
-class IntermidiateRepresentation {
+class IntermediateRepresentation {
   constructor() {
     this.quads = [];
     this.scopes = [{ _parent: -1 }];
@@ -198,4 +198,4 @@ class IntermidiateRepresentation {
   }
 }
 
-module.exports = IntermidiateRepresentation;
+module.exports = IntermediateRepresentation;

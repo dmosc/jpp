@@ -3,10 +3,10 @@
     const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const IntermidiateRepresentation = require(join(__basedir, 'ir.js'));
+        const IntermediateRepresentation = require(join(__basedir, 'ir.js'));
         const constants = require(join(__basedir, 'constants.js'));
 
-        yy.ir = new IntermidiateRepresentation();
+        yy.ir = new IntermediateRepresentation();
         yy.constants = constants;
     }
 %}
