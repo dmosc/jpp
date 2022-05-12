@@ -7,12 +7,12 @@ const {
 } = require('./constants');
 const { Stack } = require('datastructures-js');
 const { ControlFlowGraph } = require('./optimizer/cfg-graph');
+const ScopeManager = require("./scope-manager");
 
 class IntermediateRepresentation {
   constructor() {
     this.quads = [];
-    this.scopes = [{ _parent: -1 }];
-    this.scope = this.scopes[0]; // 0th scope is the global scope.
+    this.scopeManager = new ScopeManager()
     this.jumps = new Stack();
     this.operands = new Stack();
     this.assignableAddress = 0;
@@ -33,13 +33,13 @@ class IntermediateRepresentation {
 
   processVariableOperand(alias, dimensions) {
     dimensions = dimensions.map(Number);
-    let scope = this.scope;
+    let scope = this.scopeManager.getCurrentScope();
     while (scope) {
       if (scope[alias]?.dimensions.length === dimensions.length) {
         this.operands.push(scope[alias]);
         return;
       }
-      scope = this.scopes[scope._parent];
+      scope = this.scopeManager.getScope(scope._parent);
     }
     throw new Error(
       `Invalid variable as operand: ${alias}${
@@ -49,7 +49,7 @@ class IntermediateRepresentation {
   }
 
   processFunctionCallOperand(alias) {
-    let scope = this.scope;
+    let scope = this.scopeManager.getCurrentScope();
     while (scope) {
       if (scope[alias]) {
         for (const argument of scope[alias].arguments) {
@@ -59,7 +59,7 @@ class IntermediateRepresentation {
         this.quads.push([OPCODES.CALL, null, null, scope[alias].start]);
         return;
       }
-      scope = this.scopes[scope._parent];
+      scope = this.scopeManager.getScope(scope._parent);
     }
     throw new Error(`Invalid function call as operand: ${alias}`);
   }
@@ -92,32 +92,32 @@ class IntermediateRepresentation {
   }
 
   processVariable(alias, type, dimensions) {
-    if (!alias || !dimensions || this.scope[alias] || !TYPES[type]) {
+    if (!alias || !dimensions || this.scopeManager.getCurrentScope()[alias] || !TYPES[type]) {
       throw new Error(`Can\'t instantiate variable ${alias}`);
     }
-    this.scope[alias] = {
+    this.scopeManager.getCurrentScope()[alias] = {
       type,
       address: this.#getAddress(),
       dimensions: dimensions.map(Number),
       alias,
     };
     if (this.currentFunction) {
-      this.currentFunction.arguments.push(this.scope[alias]);
+      this.currentFunction.arguments.push(this.scopeManager.getCurrentScope()[alias]);
     }
   }
 
   processFunction(alias, type) {
     type = String(type).toUpperCase();
-    if (!alias || this.scope[alias] || !TYPES[type]) {
+    if (!alias || this.scopeManager.getCurrentScope()[alias] || !TYPES[type]) {
       throw new Error(`Can\'t instantiate function ${alias}`);
     }
-    this.scope[alias] = {
+    this.scopeManager.getCurrentScope()[alias] = {
       type,
       address: this.#getAddress(),
       arguments: [],
       start: this.quads.length,
     };
-    this.currentFunction = this.scope[alias];
+    this.currentFunction = this.scopeManager.getCurrentScope()[alias];
   }
 
   // JUMP STACK OPERATIONS
@@ -150,16 +150,6 @@ class IntermediateRepresentation {
 
   pushDelimiter() {
     this.jumps.push(-1);
-  }
-
-  // SCOPE STACK OPERATIONS
-  pushScope() {
-    this.scope = { _parent: this.scope._parent + 1 };
-    this.scopes.push(this.scope);
-  }
-
-  popScope() {
-    this.scope = this.scopes[this.scope._parent];
   }
 
   // OPCODE QUADRUPLE OPERATIONS

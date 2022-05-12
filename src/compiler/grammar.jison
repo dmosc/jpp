@@ -233,11 +233,11 @@ const_type:
 };
 
 @push_scope: {
-    yy.ir.pushScope();
+    yy.ir.scopeManager.push();
 };
 
 @pop_scope: {
-    yy.ir.popScope();
+    yy.ir.scopeManager.pop();
 };
 
 @goto_f: {
