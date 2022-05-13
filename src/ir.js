@@ -31,7 +31,7 @@ class IntermediateRepresentation {
       );
       const address = memory.getAddress();
       this.operands.push(address);
-      this.quads.push([OPCODES.SET, operand.data, null, address]);
+      this.quads.push([OPCODES.LOAD, operand.data, null, address]);
     } else {
       throw new Error('Invalid operand format');
     }
