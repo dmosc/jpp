@@ -2,6 +2,7 @@ const TYPES = Object.freeze({
   INT: 'INT',
   FLOAT: 'FLOAT',
   STRING: 'STRING',
+  VOID: 'VOID',
 });
 
 const OPCODES = Object.freeze({
@@ -160,6 +161,14 @@ const TTO_CUBE = Object.freeze({
     },
     [OPERATORS.BITWISE_NOT]: TYPES.FLOAT,
     [OPERATORS.BOOLEAN_NOT]: TYPES.INT,
+  },
+  [TYPES.STRING]: {
+    [TYPES.STRING]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+      [OPERATORS.EQUALS]: TYPES.INT,
+      [OPERATORS.NOT_EQUALS]: TYPES.INT,
+      [OPERATORS.ASSIGN]: TYPES.STRING,
+    },
   },
   getType: function (typeA, typeB, operator) {
     if (this[typeA][operator]) return this[typeA][operator];

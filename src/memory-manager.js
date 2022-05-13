@@ -86,8 +86,6 @@ class MemoryManager {
         return new Memory((scopeBits | typeIndex) << 27, scope, type);
       });
     });
-
-    console.log(this.segments);
   }
 
   getMemorySegment(memoryType, dataType) {
@@ -102,6 +100,29 @@ class MemoryManager {
 
   getType(address) {
     return this.supportedTypes[(address >>> 27) & 0x7];
+  }
+
+  getRealAddress(address) {
+    return address & 0x7ffffff;
+  }
+
+  clearLocals() {
+    const toClear = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
+    toClear.forEach((memType) =>
+      this.segments[this.scopeLookup[memType]].forEach((mem) => mem.reset())
+    );
+  }
+
+  getPrettyName(address) {
+    if (typeof address !== 'number') {
+      throw new Error(
+        `getPrettyName: Expected number, got ${typeof address} (${address})`
+      );
+    }
+
+    return `${this.getScope(address)} ${this.getType(
+      address
+    )} ${this.getRealAddress(address)}`;
   }
 }
 

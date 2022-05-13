@@ -15,11 +15,12 @@ const testMap = [
     description: 'Read, writes and if/elif/else',
     error: false,
   },
-  {
+  // OOP not yet implemented
+  /*{
     name: 'test3',
     description: 'OOP - Clases',
     error: false,
-  },
+  },*/
   {
     name: 'test4',
     description: 'For loop and 2d array testing',
