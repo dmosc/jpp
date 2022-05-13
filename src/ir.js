@@ -13,11 +13,11 @@ const MemoryManager = require('./memory-manager');
 
 class IntermediateRepresentation {
   constructor() {
-    this.quads = [];
     this.scopeManager = new ScopeManager();
+    this.memoryManager = new MemoryManager();
+    this.quads = [];
     this.jumps = new Stack();
     this.operands = new Stack();
-    this.memoryManager = new MemoryManager();
     this.currentType = undefined;
     this.currentFunction = undefined;
   }
@@ -59,9 +59,10 @@ class IntermediateRepresentation {
     while (scope) {
       if (scope[alias]) {
         const func = scope[alias];
-        for (const argument of func.arguments) {
+        this.quads.push([OPCODES.AIR, null, null, null]);
+        for (const { address } of func.arguments) {
           const operand = this.operands.pop();
-          this.quads.push([OPERATORS.ASSIGN, argument, operand, argument]);
+          this.quads.push([OPERATORS.ASSIGN, address, operand, address]);
         }
         this.quads.push([OPCODES.CALL, null, null, func.start]);
         if (func.type !== TYPES.VOID) {
@@ -82,7 +83,6 @@ class IntermediateRepresentation {
 
   processOperator(operator) {
     const popLeft = OPERANDS[operator] === 2;
-
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
       popLeft && this.operands.pop(),
@@ -199,8 +199,7 @@ class IntermediateRepresentation {
   popLoopJumpN(n) {
     const tempJumps = new Stack();
     while (n--) tempJumps.push(this.jumps.pop());
-    const jump = this.jumps.pop();
-    this.quads[this.quads.length - 1][3] = jump;
+    this.quads[this.quads.length - 1][3] = this.jumps.pop();
     while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
   }
 
@@ -260,20 +259,20 @@ class IntermediateRepresentation {
   prettyQuads() {
     return this.quads.map(([op, lop, rop, rrop]) => {
       const ops = OPERANDS[op];
-      if (ops !== undefined) {
+      if (ops) {
         if (ops === 1) {
           return [
             op,
             null,
-            this.memoryManager.getPrettyName(rop),
-            this.memoryManager.getPrettyName(rrop),
+            this.memoryManager.getAddressDebug(rop),
+            this.memoryManager.getAddressDebug(rrop),
           ];
         } else {
           return [
             op,
-            this.memoryManager.getPrettyName(lop),
-            this.memoryManager.getPrettyName(rop),
-            this.memoryManager.getPrettyName(rrop),
+            this.memoryManager.getAddressDebug(lop),
+            this.memoryManager.getAddressDebug(rop),
+            this.memoryManager.getAddressDebug(rrop),
           ];
         }
       }
@@ -283,12 +282,12 @@ class IntermediateRepresentation {
           op,
           lop,
           rop,
-          rrop !== null ? this.memoryManager.getPrettyName(rrop) : null,
+          rrop !== null ? this.memoryManager.getAddressDebug(rrop) : null,
         ];
       }
 
       if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
-        return [op, this.memoryManager.getPrettyName(lop), rop, rrop];
+        return [op, this.memoryManager.getAddressDebug(lop), rop, rrop];
       }
 
       return [op, lop, rop, rrop];

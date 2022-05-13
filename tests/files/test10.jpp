@@ -1,15 +1,11 @@
-program TEST_7 {
-    var int a, b;
-    a = 1;
-    b = 2;
-
-    if (a == b) {
-        var int c;
-    } elif (a == 2) {
-        var int d;
-        d = 5;
-    } else {
-        var int e;
+func int sum(int a, int b) {
+    if (a == 0) {
+        return 1;
     }
+    return sum(a - 1, b);
+}
 
+program TEST_7 {
+    var int a;
+    a = sum(1, 1);
 }

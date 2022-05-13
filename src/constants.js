@@ -7,6 +7,7 @@ const TYPES = Object.freeze({
 
 const OPCODES = Object.freeze({
   LOAD: 'LOAD',
+  AIR: 'AIR',
   CALL: 'CALL',
   GOTO: 'GOTO',
   GOTO_T: 'GOTO_T',

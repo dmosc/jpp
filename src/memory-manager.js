@@ -39,13 +39,11 @@ const { MEMORY_TYPES, TYPES } = require('./constants');
  */
 
 class Memory {
-  constructor(start, scope, type) {
+  constructor(start, type) {
     this.start = start;
     this.current = start;
     // our mask is 0x7FFFFFF, so one less is 0x7FFFFFE
     this.end = start + 0x7fffffe;
-
-    this.scope = scope;
     this.type = type;
   }
 
@@ -63,29 +61,28 @@ class Memory {
 
 class MemoryManager {
   constructor() {
-    this.supportedScopes = [
+    this.scopeTypes = [
       MEMORY_TYPES.GLOBAL,
       MEMORY_TYPES.LOCAL,
       MEMORY_TYPES.TEMP,
       MEMORY_TYPES.STACK,
     ];
-    this.scopeLookup = this.supportedScopes.reduce(
-      (prev, curr, i) => Object.assign(prev, { [curr]: i }),
-      {}
-    );
-
-    this.supportedTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING];
-    this.typeLookup = this.supportedTypes.reduce(
-      (prev, curr, i) => Object.assign(prev, { [curr]: i }),
-      {}
-    );
-
-    this.segments = this.supportedScopes.map((scope, scopeIndex) => {
+    this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING];
+    this.scopeLookup = this.getLookupTable(this.scopeTypes);
+    this.typeLookup = this.getLookupTable(this.dataTypes);
+    this.segments = this.scopeTypes.map((_, scopeIndex) => {
       const scopeBits = scopeIndex << 3;
-      return this.supportedTypes.map((type, typeIndex) => {
-        return new Memory((scopeBits | typeIndex) << 27, scope, type);
+      return this.dataTypes.map((type, typeIndex) => {
+        return new Memory((scopeBits | typeIndex) << 27, type);
       });
     });
+  }
+
+  getLookupTable(list) {
+    return list.reduce((obj, scope, i) => {
+      obj[scope] = i;
+      return obj;
+    }, {});
   }
 
   getMemorySegment(memoryType, dataType) {
@@ -95,34 +92,35 @@ class MemoryManager {
   }
 
   getScope(address) {
-    return this.supportedScopes[address >>> 30];
+    return this.scopeTypes[address >>> 30];
   }
 
   getType(address) {
-    return this.supportedTypes[(address >>> 27) & 0x7];
+    return this.dataTypes[(address >>> 27) & 0x7];
   }
 
-  getRealAddress(address) {
+  getAddress(address) {
     return address & 0x7ffffff;
   }
 
-  clearLocals() {
-    const toClear = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
-    toClear.forEach((memType) =>
-      this.segments[this.scopeLookup[memType]].forEach((mem) => mem.reset())
-    );
-  }
-
-  getPrettyName(address) {
-    if (typeof address !== 'number') {
+  getAddressDebug(address) {
+    if (isNaN(address)) {
       throw new Error(
-        `getPrettyName: Expected number, got ${typeof address} (${address})`
+        `Argument "address" must be number, got: ${typeof address}`
       );
     }
-
     return `${this.getScope(address)} ${this.getType(
       address
-    )} ${this.getRealAddress(address)}`;
+    )} ${this.getAddress(address)}`;
+  }
+
+  clearLocals() {
+    this.segments[this.scopeLookup[MEMORY_TYPES.LOCAL]].forEach((memory) =>
+      memory.reset()
+    );
+    this.segments[this.scopeLookup[MEMORY_TYPES.TEMP]].forEach((memory) =>
+      memory.reset()
+    );
   }
 }
 
