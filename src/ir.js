@@ -58,11 +58,21 @@ class IntermediateRepresentation {
     let scope = this.scopeManager.getCurrentScope();
     while (scope) {
       if (scope[alias]) {
-        for (const argument of scope[alias].arguments) {
+        const func = scope[alias];
+        for (const argument of func.arguments) {
           const operand = this.operands.pop();
           this.quads.push([OPERATORS.ASSIGN, argument, operand, argument]);
         }
-        this.quads.push([OPCODES.CALL, null, null, scope[alias].start]);
+        this.quads.push([OPCODES.CALL, null, null, func.start]);
+        if (func.type !== TYPES.VOID) {
+          const memory = this.memoryManager.getMemorySegment(
+            MEMORY_TYPES.TEMP,
+            func.type
+          );
+          const address = memory.getAddress();
+          this.operands.push(address);
+          this.quads.push([OPERATORS.ASSIGN, address, func.address, address]);
+        }
         return;
       }
       scope = this.scopeManager.getScope(scope._parent);
@@ -135,7 +145,7 @@ class IntermediateRepresentation {
 
     if (type !== TYPES.VOID) {
       const memory = this.memoryManager.getMemorySegment(
-        MEMORY_TYPES.LOCAL,
+        MEMORY_TYPES.GLOBAL,
         type
       );
 
@@ -266,7 +276,12 @@ class IntermediateRepresentation {
       }
 
       if (op === OPCODES.LOAD || op === OPCODES.RETURN) {
-        return [op, lop, rop, this.memoryManager.getPrettyName(rrop)];
+        return [
+          op,
+          lop,
+          rop,
+          rrop !== null ? this.memoryManager.getPrettyName(rrop) : null,
+        ];
       }
 
       if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {

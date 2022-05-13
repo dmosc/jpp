@@ -109,6 +109,12 @@ class MemoryManager {
   }
 
   getPrettyName(address) {
+    if (typeof address !== 'number') {
+      throw new Error(
+        `getPrettyName: Expected number, got ${typeof address} (${address})`
+      );
+    }
+
     return `${this.getScope(address)} ${this.getType(
       address
     )} ${this.getRealAddress(address)}`;

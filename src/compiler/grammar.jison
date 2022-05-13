@@ -203,7 +203,9 @@ const_type:
     CONST_FLOAT {
         yy.ir.processConstantOperand({ data: parseFloat($1, 10), type: yy.constants.TYPES.FLOAT });
     } |
-    CONST_STRING |
+    CONST_STRING {
+        yy.ir.processConstantOperand({ data: $1.substring(1, $1.length - 1), type: yy.constants.TYPES.STRING });
+    } |
     CONST_BOOLEAN {
         const data = $1 === "true" ? 1 : 0;
         yy.ir.processConstantOperand({ data, type: yy.constants.TYPES.INT });
