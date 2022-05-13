@@ -2,6 +2,7 @@ const TYPES = Object.freeze({
   INT: 'INT',
   FLOAT: 'FLOAT',
   STRING: 'STRING',
+  VOID: 'VOID',
 });
 
 const OPCODES = Object.freeze({

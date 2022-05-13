@@ -103,6 +103,16 @@ class MemoryManager {
   getType(address) {
     return this.supportedTypes[(address >>> 27) & 0x7];
   }
+
+  getRealAddress(address) {
+    return address & 0x7ffffff;
+  }
+
+  getPrettyName(address) {
+    return `${this.getScope(address)} ${this.getType(
+      address
+    )} ${this.getRealAddress(address)}`;
+  }
 }
 
 module.exports = MemoryManager;

@@ -23,10 +23,19 @@
 [/]{2}(.|\n|\r)+?[/]{2} {}
 
 /* Lexical grammar */
+
+/* BITWISE_OP */
+/* It needs to be processed before comparisons */
+/* L4 */
+"<<"                   { return "BITWISE_LEFT_SHIFT"; }
+">>"                   { return "BITWISE_RIGHT_SHIFT"; }
+
+
 /* RELATIONAL_OP */
 /* L1 */
 "=="                   { return "EQUALS"; }
 "!="                   { return "NOT_EQUALS"; }
+
 /* L2 */
 "<"                    { return "LT"; }
 "<="                   { return "LTE"; }
@@ -48,9 +57,7 @@
 "^"                    { return "BITWISE_XOR"; }
 /* L3 */
 "&"                    { return "BITWISE_AND"; }
-/* L4 */
-"<<"                   { return "BITWISE_LEFT_SHIFT"; }
-">>"                   { return "BITWISE_RIGHT_SHIFT"; }
+/* L4 Above */
 /* L5 */
 "~"                    { return "BITWISE_NOT"; }
 
@@ -263,11 +270,15 @@ const_type:
     yy.ir.popLoopJumpN(3);
 };
 
+@close_function: {
+    yy.ir.close_function();
+};
+
 
 program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        console.table(yy.ir.quads);
+        console.table(yy.ir.prettyQuads());
         //yy.ir.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
@@ -307,7 +318,7 @@ params_2: /* empty */
     };
 
 function:
-    FUNC function_1 @push_scope params block @pop_scope;
+    FUNC function_1 @push_scope params block @close_function @pop_scope;
 
 function_1:
     function_2 ID {
@@ -446,6 +457,9 @@ statement:
     for_loop |
     function_call SEMICOLON |
     RETURN expression SEMICOLON {
+        yy.ir.insertReturn();
+    } |
+    RETURN SEMICOLON {
         yy.ir.insertReturn();
     };
 
