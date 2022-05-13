@@ -86,8 +86,6 @@ class MemoryManager {
         return new Memory((scopeBits | typeIndex) << 27, scope, type);
       });
     });
-
-    console.log(this.segments);
   }
 
   getMemorySegment(memoryType, dataType) {
