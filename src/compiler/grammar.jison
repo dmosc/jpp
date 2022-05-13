@@ -273,7 +273,7 @@ const_type:
 };
 
 @close_function: {
-    yy.ir.close_function();
+    yy.ir.closeFunction();
 };
 
 

@@ -167,7 +167,7 @@ class IntermediateRepresentation {
     this.currentFunction = this.scopeManager.getCurrentScope()[alias];
   }
 
-  close_function() {
+  closeFunction() {
     if (this.currentFunction.type === TYPES.VOID) {
       this.quads.push([OPCODES.RETURN, null, null, null]);
     }
