@@ -289,6 +289,7 @@ program:
 program_init:
     PROGRAM ID {
         yy.ir.insertProgramInit();
+        yy.ir.processFunction($2, 'VOID');
     };
 
 program_1: /* empty */

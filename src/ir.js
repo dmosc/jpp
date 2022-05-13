@@ -121,7 +121,9 @@ class IntermediateRepresentation {
       throw new Error(`Can\'t instantiate variable ${alias}`);
     }
     const memory = this.memoryManager.getMemorySegment(
-      MEMORY_TYPES.LOCAL,
+      this.currentFunction !== undefined
+        ? MEMORY_TYPES.LOCAL
+        : MEMORY_TYPES.GLOBAL,
       type
     );
     this.scopeManager.getCurrentScope()[alias] = {
@@ -171,6 +173,7 @@ class IntermediateRepresentation {
     }
 
     this.currentFunction = undefined;
+    this.memoryManager.clearLocals();
   }
 
   // JUMP STACK OPERATIONS

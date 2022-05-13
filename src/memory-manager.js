@@ -108,6 +108,13 @@ class MemoryManager {
     return address & 0x7ffffff;
   }
 
+  clearLocals() {
+    const toClear = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
+    toClear.forEach((memType) =>
+      this.segments[this.scopeLookup[memType]].forEach((mem) => mem.reset())
+    );
+  }
+
   getPrettyName(address) {
     if (typeof address !== 'number') {
       throw new Error(
