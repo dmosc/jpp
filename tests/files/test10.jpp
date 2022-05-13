@@ -1,7 +1,15 @@
 program TEST_7 {
-    var bool a;
-    a = false;
-    if (!a == a) {
-        write(a);
+    var int a, b;
+    a = 1;
+    b = 2;
+
+    if (a == b) {
+        var int c;
+    } elif (a == 2) {
+        var int d;
+        d = 5;
+    } else {
+        var int e;
     }
+
 }

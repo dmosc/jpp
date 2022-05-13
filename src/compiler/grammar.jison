@@ -268,9 +268,9 @@ program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.ir.quads);
-        yy.ir.optimizeIR();
-        console.log('Optimized code');
-        console.table(yy.ir.quads);
+        //yy.ir.optimizeIR();
+        //console.log('Optimized code');
+        //console.table(yy.ir.quads);
     };
 
 program_init:

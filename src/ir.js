@@ -4,31 +4,37 @@ const {
   OPCODES,
   OPERATORS,
   OPERANDS,
+  MEMORY_TYPES,
 } = require('./constants');
 const { Stack } = require('datastructures-js');
 const { ControlFlowGraph } = require('./optimizer/cfg-graph');
-const ScopeManager = require("./scope-manager");
+const ScopeManager = require('./scope-manager');
+const MemoryManager = require('./memory-manager');
 
 class IntermediateRepresentation {
   constructor() {
     this.quads = [];
-    this.scopeManager = new ScopeManager()
+    this.scopeManager = new ScopeManager();
     this.jumps = new Stack();
     this.operands = new Stack();
-    this.assignableAddress = 0;
+    this.memoryManager = new MemoryManager();
     this.currentType = undefined;
     this.currentFunction = undefined;
   }
 
-  #getAddress() {
-    return this.assignableAddress++;
-  }
-
   // LOADERS
   processConstantOperand(operand) {
-    if (operand.data !== undefined && TYPES[operand.type])
-      this.operands.push(operand);
-    else throw new Error('Invalid operand format');
+    if (operand.data !== undefined && TYPES[operand.type]) {
+      const memory = this.memoryManager.getMemorySegment(
+        MEMORY_TYPES.TEMP,
+        operand.type
+      );
+      const address = memory.getAddress();
+      this.operands.push(address);
+      this.quads.push([OPCODES.SET, operand.data, null, address]);
+    } else {
+      throw new Error('Invalid operand format');
+    }
   }
 
   processVariableOperand(alias, dimensions) {
@@ -36,7 +42,7 @@ class IntermediateRepresentation {
     let scope = this.scopeManager.getCurrentScope();
     while (scope) {
       if (scope[alias]?.dimensions.length === dimensions.length) {
-        this.operands.push(scope[alias]);
+        this.operands.push(scope[alias]?.address);
         return;
       }
       scope = this.scopeManager.getScope(scope._parent);
@@ -74,35 +80,50 @@ class IntermediateRepresentation {
     let type;
 
     try {
-      type = TTO_CUBE.getType(rightOperand?.type, leftOperand?.type, operator);
+      type = TTO_CUBE.getType(
+        this.memoryManager.getType(rightOperand),
+        this.memoryManager.getType(leftOperand),
+        operator
+      );
     } catch (err) {
       console.table(this.quads);
       throw new Error(
-        `Could not get types from ${rightOperand?.type} ${operator} ${leftOperand?.type}`
+        `Could not get types from ${this.memoryManager.getType(
+          rightOperand
+        )} ${operator} ${this.memoryManager.getType(leftOperand)}`
       );
     }
 
-    const memSlot = {
-      address: this.#getAddress(),
-      type,
-    };
-    if (operator === OPERATORS.ASSIGN) memSlot.address = leftOperand?.address;
-    this.quads.push([operator, leftOperand, rightOperand, memSlot]);
-    this.operands.push(memSlot);
+    const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, type);
+    let address = memory.getAddress();
+    if (operator === OPERATORS.ASSIGN) address = leftOperand;
+    this.quads.push([operator, leftOperand, rightOperand, address]);
+    this.operands.push(address);
   }
 
   processVariable(alias, type, dimensions) {
-    if (!alias || !dimensions || this.scopeManager.getCurrentScope()[alias] || !TYPES[type]) {
+    if (
+      !alias ||
+      !dimensions ||
+      this.scopeManager.getCurrentScope()[alias] ||
+      !TYPES[type]
+    ) {
       throw new Error(`Can\'t instantiate variable ${alias}`);
     }
+    const memory = this.memoryManager.getMemorySegment(
+      MEMORY_TYPES.LOCAL,
+      type
+    );
     this.scopeManager.getCurrentScope()[alias] = {
       type,
-      address: this.#getAddress(),
+      address: memory.getAddress(),
       dimensions: dimensions.map(Number),
       alias,
     };
     if (this.currentFunction) {
-      this.currentFunction.arguments.push(this.scopeManager.getCurrentScope()[alias]);
+      this.currentFunction.arguments.push(
+        this.scopeManager.getCurrentScope()[alias]
+      );
     }
   }
 
@@ -111,9 +132,13 @@ class IntermediateRepresentation {
     if (!alias || this.scopeManager.getCurrentScope()[alias] || !TYPES[type]) {
       throw new Error(`Can\'t instantiate function ${alias}`);
     }
+    const memory = this.memoryManager.getMemorySegment(
+      MEMORY_TYPES.LOCAL,
+      type
+    );
     this.scopeManager.getCurrentScope()[alias] = {
       type,
-      address: this.#getAddress(),
+      address: memory.getAddress(),
       arguments: [],
       start: this.quads.length,
     };
@@ -172,7 +197,7 @@ class IntermediateRepresentation {
 
   insertReturn() {
     const value = this.operands.pop();
-    if (value.type === this.currentFunction.type) {
+    if (this.memoryManager.getType(value) === this.currentFunction.type) {
       this.quads.push([OPCODES.RETURN, null, null, value]);
       this.currentFunction = undefined;
     } else {

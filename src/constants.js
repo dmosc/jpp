@@ -5,6 +5,7 @@ const TYPES = Object.freeze({
 });
 
 const OPCODES = Object.freeze({
+  SET: 'SET',
   CALL: 'CALL',
   GOTO: 'GOTO',
   GOTO_T: 'GOTO_T',
@@ -169,6 +170,13 @@ const TTO_CUBE = Object.freeze({
   },
 });
 
+const MEMORY_TYPES = Object.freeze({
+  GLOBAL: 'GLOBAL',
+  LOCAL: 'LOCAL',
+  TEMP: 'TEMP',
+  STACK: 'STACK',
+});
+
 module.exports = {
   TYPES,
   OPCODES,
@@ -176,4 +184,5 @@ module.exports = {
   OPERANDS,
   TTO_CUBE,
   OPERATOR_FUNCTIONS,
+  MEMORY_TYPES,
 };
