@@ -1,3 +1,5 @@
+const {TYPES} = require("./constants");
+
 class Scope {
   constructor(_parent, _index) {
     this._index = _index;
@@ -34,6 +36,7 @@ class ScopeManager {
   constructor() {
     this.scopes = [new Scope(-1, 0)];
     this.scope = this.scopes[0];
+    this.currentFunction = undefined;
   }
 
   getScope(i) {
@@ -54,6 +57,42 @@ class ScopeManager {
       }
     }
     return undefined;
+  }
+
+  getCurrentFunction() {
+    return this.currentFunction;
+  }
+
+  switchCurrentFunction(alias = undefined) {
+    if (!alias) this.currentFunction = undefined;
+    else this.currentFunction = this.findAlias(alias);
+  }
+
+  addVariableAlias(alias, type, dimensions, address) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t declare variable ${alias}:${type}`);
+    }
+    scope.setAlias(alias, {
+      type,
+      address,
+      dimensions: dimensions.map(Number),
+      alias,
+      isArgument: !!this.getCurrentFunction()
+    });
+  }
+
+  addFunctionAlias(alias, type, start, address) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t declare function ${alias}:${type}`);
+    }
+    scope.setAlias(alias, {
+      type,
+      address,
+      arguments: [],
+      start,
+    });
   }
 
   findAlias(alias, dimensions = undefined) {

@@ -16,7 +16,6 @@ class IntermediateRepresentation {
     this.jumpsManager = jumpsManager;
     this.operands = new Stack();
     this.currentType = undefined;
-    this.currentFunction = undefined;
   }
 
   // LOADERS
@@ -39,11 +38,14 @@ class IntermediateRepresentation {
 
   processFunctionCallOperand(alias) {
     const functionOperand = this.scopeManager.findAlias(alias);
+    const aliases = this.scopeManager.getCurrentScope().getAliases();
     this.quadruplesManager.pushAir();
-    for (const {address} of functionOperand.arguments) {
-      const operand = this.operands.pop();
-      this.quadruplesManager.pushAssign(address, operand, address);
-    }
+    Object.keys(aliases).forEach((alias) => {
+      if (aliases[alias].isArgument) {
+        const operand = this.operands.pop();
+        this.quadruplesManager.pushAssign(aliases[alias].address, operand, aliases[alias].address);
+      }
+    });
     this.quadruplesManager.pushCall(functionOperand.start);
     if (functionOperand.type !== TYPES.VOID) {
       const memory = this.memoryManager.getMemorySegment(
@@ -87,65 +89,35 @@ class IntermediateRepresentation {
   }
 
   processVariable(alias, type, dimensions) {
-    if (
-      !alias ||
-      !dimensions ||
-      this.scopeManager.getCurrentScope().getAlias(alias) ||
-      !TYPES[type]
-    ) {
-      throw new Error(`Can\'t instantiate variable ${alias}`);
-    }
     const memory = this.memoryManager.getMemorySegment(
-      this.currentFunction !== undefined
+      this.scopeManager.getCurrentFunction()
         ? MEMORY_TYPES.LOCAL
         : MEMORY_TYPES.GLOBAL,
       type
     );
-    this.scopeManager.getCurrentScope().setAlias(alias, {
-      type,
-      address: memory.getAddress(),
-      dimensions: dimensions.map(Number),
-      alias,
-    });
-    if (this.currentFunction) {
-      this.currentFunction.arguments.push(
-        this.scopeManager.getCurrentScope().getAlias(alias)
-      );
-    }
+    this.scopeManager.addVariableAlias(alias, type, dimensions, memory.getAddress());
   }
 
   processFunction(alias, type) {
     type = String(type).toUpperCase();
-    if (!alias || this.scopeManager.getCurrentScope().getAlias(alias) || !TYPES[type]) {
-      throw new Error(`Can\'t instantiate function ${alias}`);
-    }
-
-    if (type !== TYPES.VOID) {
-      const memory = this.memoryManager.getMemorySegment(
-        MEMORY_TYPES.GLOBAL,
-        type
-      );
-      this.scopeManager.getCurrentScope().setAlias(alias, {
-        type,
-        address: memory.getAddress(),
-        arguments: [],
-        start: this.quadruplesManager.getQuadruplesSize(),
-      });
-    } else {
-      this.scopeManager.getCurrentScope().setAlias(alias, {
-        type,
-        arguments: [],
-        start: this.quadruplesManager.getQuadruplesSize(),
-      });
-    }
-    this.currentFunction = this.scopeManager.getCurrentScope().getAlias(alias);
+    const memory = this.memoryManager.getMemorySegment(
+      MEMORY_TYPES.GLOBAL,
+      type
+    );
+    this.scopeManager.addFunctionAlias(
+      alias,
+      type,
+      this.quadruplesManager.getQuadruplesSize(),
+      type !== TYPES.VOID ? memory.getAddress() : undefined
+    );
+    this.scopeManager.switchCurrentFunction(alias);
   }
 
   closeFunction() {
-    if (this.currentFunction.type === TYPES.VOID) {
+    if (this.scopeManager.getCurrentFunction().type === TYPES.VOID) {
       this.quadruplesManager.pushReturn();
     }
-    delete this.currentFunction;
+    this.scopeManager.switchCurrentFunction();
     this.memoryManager.clearLocals();
   }
 
@@ -155,12 +127,13 @@ class IntermediateRepresentation {
 
   insertReturn() {
     const returnValue = !this.operands.isEmpty() ? this.operands.pop() : undefined;
-    if (!returnValue && this.currentFunction.type === TYPES.VOID) {
+    const currentFunctionType = this.scopeManager.getCurrentFunction().type;
+    if (!returnValue && currentFunctionType === TYPES.VOID) {
       this.quadruplesManager.pushReturn();
-    } else if (this.memoryManager.getType(returnValue) === this.currentFunction.type) {
+    } else if (this.memoryManager.getType(returnValue) === currentFunctionType) {
       this.quadruplesManager.pushReturn(returnValue);
     } else {
-      throw new Error(`Types don't match: ${this.currentFunction.type} != ${this.memoryManager.getType(returnValue)}`);
+      throw new Error(`Types don't match: ${currentFunctionType} != ${this.memoryManager.getType(returnValue)}`);
     }
   }
 

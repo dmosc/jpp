@@ -1,6 +1,6 @@
 func int sum(int x, int y) {
     var int a, b;
-        b = 0;
+    b = 0;
     for (a = 0; a < 2; a = a + 1) {
         b = b + 1;
     }
@@ -19,5 +19,5 @@ func int multiply(int x, int y) {
 program TEST_7 {
     var int a, b;
     sum(a, b);
-    multiply(a, b);
+    //multiply(a, b);//
 }
