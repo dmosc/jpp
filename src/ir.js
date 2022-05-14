@@ -6,17 +6,19 @@ const {
   OPERANDS,
   MEMORY_TYPES,
 } = require('./constants');
-const { Stack } = require('datastructures-js');
-const { ControlFlowGraph } = require('./optimizer/cfg-graph');
+const {Stack} = require('datastructures-js');
+const {ControlFlowGraph} = require('./optimizer/cfg-graph');
 const ScopeManager = require('./scope-manager');
 const MemoryManager = require('./memory-manager');
+const QuadruplesManager = require("./quadruples-manager");
+const JumpsManager = require("./jumps-manager");
 
 class IntermediateRepresentation {
   constructor() {
     this.scopeManager = new ScopeManager();
     this.memoryManager = new MemoryManager();
-    this.quads = [];
-    this.jumps = new Stack();
+    this.quadruplesManager = new QuadruplesManager();
+    this.jumpsManager = new JumpsManager();
     this.operands = new Stack();
     this.currentType = undefined;
     this.currentFunction = undefined;
@@ -25,13 +27,10 @@ class IntermediateRepresentation {
   // LOADERS
   processConstantOperand(operand) {
     if (operand.data !== undefined && TYPES[operand.type]) {
-      const memory = this.memoryManager.getMemorySegment(
-        MEMORY_TYPES.TEMP,
-        operand.type
-      );
+      const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, operand.type);
       const address = memory.getAddress();
       this.operands.push(address);
-      this.quads.push([OPCODES.LOAD, operand.data, null, address]);
+      this.quadruplesManager.pushLoad(operand.data, address);
     } else {
       throw new Error('Invalid operand format');
     }
@@ -59,12 +58,12 @@ class IntermediateRepresentation {
     while (scope) {
       if (scope[alias]) {
         const func = scope[alias];
-        this.quads.push([OPCODES.AIR, null, null, null]);
-        for (const { address } of func.arguments) {
+        this.quadruplesManager.pushAir();
+        for (const {address} of func.arguments) {
           const operand = this.operands.pop();
-          this.quads.push([OPERATORS.ASSIGN, address, operand, address]);
+          this.quadruplesManager.pushAssign(address, operand, address);
         }
-        this.quads.push([OPCODES.CALL, null, null, func.start]);
+        this.quadruplesManager.pushCall(func.start);
         if (func.type !== TYPES.VOID) {
           const memory = this.memoryManager.getMemorySegment(
             MEMORY_TYPES.TEMP,
@@ -72,7 +71,7 @@ class IntermediateRepresentation {
           );
           const address = memory.getAddress();
           this.operands.push(address);
-          this.quads.push([OPERATORS.ASSIGN, address, func.address, address]);
+          this.quadruplesManager.pushAssign(address, func.address, address);
         }
         return;
       }
@@ -107,7 +106,7 @@ class IntermediateRepresentation {
     const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, type);
     let address = memory.getAddress();
     if (operator === OPERATORS.ASSIGN) address = leftOperand;
-    this.quads.push([operator, leftOperand, rightOperand, address]);
+    this.quadruplesManager.pushQuadruple([operator, leftOperand, rightOperand, address]);
     this.operands.push(address);
   }
 
@@ -150,18 +149,17 @@ class IntermediateRepresentation {
         MEMORY_TYPES.GLOBAL,
         type
       );
-
       this.scopeManager.getCurrentScope()[alias] = {
         type,
         address: memory.getAddress(),
         arguments: [],
-        start: this.quads.length,
+        start: this.quadruplesManager.getQuadruplesSize(),
       };
     } else {
       this.scopeManager.getCurrentScope()[alias] = {
         type,
         arguments: [],
-        start: this.quads.length,
+        start: this.quadruplesManager.getQuadruplesSize(),
       };
     }
     this.currentFunction = this.scopeManager.getCurrentScope()[alias];
@@ -169,95 +167,34 @@ class IntermediateRepresentation {
 
   closeFunction() {
     if (this.currentFunction.type === TYPES.VOID) {
-      this.quads.push([OPCODES.RETURN, null, null, null]);
+      this.quadruplesManager.pushReturn();
     }
-
-    this.currentFunction = undefined;
+    delete this.currentFunction;
     this.memoryManager.clearLocals();
   }
 
-  // JUMP STACK OPERATIONS
-  pushJump() {
-    this.jumps.push(this.quads.length);
-  }
-
-  popJumpN(n) {
-    const tempJumps = new Stack();
-    while (n--) tempJumps.push(this.jumps.pop());
-    const jump = this.jumps.pop();
-    this.quads[jump][3] = this.quads.length;
-    while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
-  }
-
-  popAllJumps() {
-    while (!this.jumps.isEmpty() && this.jumps.peek() !== -1) this.popJumpN(0);
-    if (this.jumps.pop() !== -1) {
-      throw new Error('Called popAllJumps and there was no delimiter');
-    }
-  }
-
-  popLoopJumpN(n) {
-    const tempJumps = new Stack();
-    while (n--) tempJumps.push(this.jumps.pop());
-    this.quads[this.quads.length - 1][3] = this.jumps.pop();
-    while (!tempJumps.isEmpty()) this.jumps.push(tempJumps.pop());
-  }
-
-  pushDelimiter() {
-    this.jumps.push(-1);
-  }
-
-  // OPCODE QUADRUPLE OPERATIONS
-  insertProgramInit() {
-    this.quads.push([OPCODES.INIT, null, null, null]);
-  }
-
-  insertGoToF() {
-    this.quads.push([
-      OPCODES.GOTO_F,
-      this.quads[this.quads.length - 1][3],
-      null,
-      null,
-    ]);
-  }
-
-  insertGoTo() {
-    this.quads.push([OPCODES.GOTO, null, null, null]);
+  linkJump(from, to) {
+    this.quadruplesManager.setQuadrupleValue(from, 3, to);
   }
 
   insertReturn() {
-    if (this.operands.isEmpty()) {
-      if (this.currentFunction.type !== TYPES.VOID) {
-        throw new Error(
-          `Function must return type: ${this.currentFunction.type}`
-        );
-      }
-
-      this.quads.push([OPCODES.RETURN, null, null, null]);
-      return;
+    const returnValue = !this.operands.isEmpty() ? this.operands.pop() : undefined;
+    if (!returnValue && this.currentFunction.type === TYPES.VOID) {
+      this.quadruplesManager.pushReturn();
+    } else if (this.memoryManager.getType(returnValue) === this.currentFunction.type) {
+      this.quadruplesManager.pushReturn(returnValue);
+    } else {
+      throw new Error(`Types don't match: ${this.currentFunction.type} != ${this.memoryManager.getType(returnValue)}`);
     }
-
-    if (this.currentFunction.type === TYPES.VOID) {
-      throw new Error(`Function must return void`);
-    }
-
-    const value = this.operands.pop();
-    if (this.memoryManager.getType(value) !== this.currentFunction.type) {
-      throw new Error(
-        `Function must return type: ${this.currentFunction.type}`
-      );
-    }
-
-    this.quads.push([OPCODES.RETURN, null, null, value]);
   }
 
   optimizeIR() {
-    const graph = new ControlFlowGraph(this.quads);
-    this.quads = graph.toQuads();
+    const graph = new ControlFlowGraph(this.quadruplesManager.getQuadruples());
+    this.quadruplesManager.setQuadruples(graph.toQuads());
   }
 
   prettyQuads() {
-    return this.quads.map(([op, lop, rop, rrop]) => {
+    return this.quadruplesManager.getQuadruples().map(([op, lop, rop, rrop]) => {
       const ops = OPERANDS[op];
       if (ops) {
         if (ops === 1) {
