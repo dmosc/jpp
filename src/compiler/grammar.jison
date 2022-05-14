@@ -3,10 +3,18 @@
     const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const IntermediateRepresentation = require(join(__basedir, 'ir.js'));
+        const IntermediateRepresentation = require(join(__basedir, 'intermediate-representation.js'));
+        const ScopeManager = require(join(__basedir, 'scope-manager.js'));
+        const MemoryManager = require(join(__basedir, 'memory-manager.js'));
+        const QuadruplesManager = require(join(__basedir, 'quadruples-manager.js'));
+        const JumpsManager = require(join(__basedir, 'jumps-manager.js'));
         const constants = require(join(__basedir, 'constants.js'));
 
-        yy.ir = new IntermediateRepresentation();
+        const scopeManager = new ScopeManager();
+        const memoryManager = new MemoryManager();
+        const quadruplesManager = new QuadruplesManager();
+        const jumpsManager = new JumpsManager();
+        yy.ir = new IntermediateRepresentation(scopeManager, memoryManager, quadruplesManager, jumpsManager);
         yy.constants = constants;
     }
 %}
@@ -283,7 +291,7 @@ program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.ir.prettyQuads());
-        //yy.ir.optimizeIR();
+        //yy.ir.quadruplesManager.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
     };

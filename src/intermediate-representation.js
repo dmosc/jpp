@@ -7,18 +7,13 @@ const {
   MEMORY_TYPES,
 } = require('./constants');
 const {Stack} = require('datastructures-js');
-const {ControlFlowGraph} = require('./optimizer/cfg-graph');
-const ScopeManager = require('./scope-manager');
-const MemoryManager = require('./memory-manager');
-const QuadruplesManager = require("./quadruples-manager");
-const JumpsManager = require("./jumps-manager");
 
 class IntermediateRepresentation {
-  constructor() {
-    this.scopeManager = new ScopeManager();
-    this.memoryManager = new MemoryManager();
-    this.quadruplesManager = new QuadruplesManager();
-    this.jumpsManager = new JumpsManager();
+  constructor(scopeManager, memoryManager, quadruplesManager, jumpsManager) {
+    this.scopeManager = scopeManager;
+    this.memoryManager = memoryManager;
+    this.quadruplesManager = quadruplesManager;
+    this.jumpsManager = jumpsManager;
     this.operands = new Stack();
     this.currentType = undefined;
     this.currentFunction = undefined;
@@ -38,46 +33,27 @@ class IntermediateRepresentation {
 
   processVariableOperand(alias, dimensions) {
     dimensions = dimensions.map(Number);
-    let scope = this.scopeManager.getCurrentScope();
-    while (scope) {
-      if (scope[alias]?.dimensions.length === dimensions.length) {
-        this.operands.push(scope[alias]?.address);
-        return;
-      }
-      scope = this.scopeManager.getScope(scope._parent);
-    }
-    throw new Error(
-      `Invalid variable as operand: ${alias}${
-        dimensions.length ? `[${dimensions.join('][')}]` : ''
-      }`
-    );
+    const variableOperand = this.scopeManager.findAlias(alias, dimensions);
+    this.operands.push(variableOperand.address);
   }
 
   processFunctionCallOperand(alias) {
-    let scope = this.scopeManager.getCurrentScope();
-    while (scope) {
-      if (scope[alias]) {
-        const func = scope[alias];
-        this.quadruplesManager.pushAir();
-        for (const {address} of func.arguments) {
-          const operand = this.operands.pop();
-          this.quadruplesManager.pushAssign(address, operand, address);
-        }
-        this.quadruplesManager.pushCall(func.start);
-        if (func.type !== TYPES.VOID) {
-          const memory = this.memoryManager.getMemorySegment(
-            MEMORY_TYPES.TEMP,
-            func.type
-          );
-          const address = memory.getAddress();
-          this.operands.push(address);
-          this.quadruplesManager.pushAssign(address, func.address, address);
-        }
-        return;
-      }
-      scope = this.scopeManager.getScope(scope._parent);
+    const functionOperand = this.scopeManager.findAlias(alias);
+    this.quadruplesManager.pushAir();
+    for (const {address} of functionOperand.arguments) {
+      const operand = this.operands.pop();
+      this.quadruplesManager.pushAssign(address, operand, address);
     }
-    throw new Error(`Invalid function call as operand: ${alias}`);
+    this.quadruplesManager.pushCall(functionOperand.start);
+    if (functionOperand.type !== TYPES.VOID) {
+      const memory = this.memoryManager.getMemorySegment(
+        MEMORY_TYPES.TEMP,
+        functionOperand.type
+      );
+      const address = memory.getAddress();
+      this.operands.push(address);
+      this.quadruplesManager.pushAssign(address, functionOperand.address, address);
+    }
   }
 
   processOperator(operator) {
@@ -114,7 +90,7 @@ class IntermediateRepresentation {
     if (
       !alias ||
       !dimensions ||
-      this.scopeManager.getCurrentScope()[alias] ||
+      this.scopeManager.getCurrentScope().getAlias(alias) ||
       !TYPES[type]
     ) {
       throw new Error(`Can\'t instantiate variable ${alias}`);
@@ -125,22 +101,22 @@ class IntermediateRepresentation {
         : MEMORY_TYPES.GLOBAL,
       type
     );
-    this.scopeManager.getCurrentScope()[alias] = {
+    this.scopeManager.getCurrentScope().setAlias(alias, {
       type,
       address: memory.getAddress(),
       dimensions: dimensions.map(Number),
       alias,
-    };
+    });
     if (this.currentFunction) {
       this.currentFunction.arguments.push(
-        this.scopeManager.getCurrentScope()[alias]
+        this.scopeManager.getCurrentScope().getAlias(alias)
       );
     }
   }
 
   processFunction(alias, type) {
     type = String(type).toUpperCase();
-    if (!alias || this.scopeManager.getCurrentScope()[alias] || !TYPES[type]) {
+    if (!alias || this.scopeManager.getCurrentScope().getAlias(alias) || !TYPES[type]) {
       throw new Error(`Can\'t instantiate function ${alias}`);
     }
 
@@ -149,20 +125,20 @@ class IntermediateRepresentation {
         MEMORY_TYPES.GLOBAL,
         type
       );
-      this.scopeManager.getCurrentScope()[alias] = {
+      this.scopeManager.getCurrentScope().setAlias(alias, {
         type,
         address: memory.getAddress(),
         arguments: [],
         start: this.quadruplesManager.getQuadruplesSize(),
-      };
+      });
     } else {
-      this.scopeManager.getCurrentScope()[alias] = {
+      this.scopeManager.getCurrentScope().setAlias(alias, {
         type,
         arguments: [],
         start: this.quadruplesManager.getQuadruplesSize(),
-      };
+      });
     }
-    this.currentFunction = this.scopeManager.getCurrentScope()[alias];
+    this.currentFunction = this.scopeManager.getCurrentScope().getAlias(alias);
   }
 
   closeFunction() {
@@ -186,11 +162,6 @@ class IntermediateRepresentation {
     } else {
       throw new Error(`Types don't match: ${this.currentFunction.type} != ${this.memoryManager.getType(returnValue)}`);
     }
-  }
-
-  optimizeIR() {
-    const graph = new ControlFlowGraph(this.quadruplesManager.getQuadruples());
-    this.quadruplesManager.setQuadruples(graph.toQuads());
   }
 
   prettyQuads() {

@@ -1,4 +1,5 @@
-const {OPCODES, OPERATORS, OPERANDS} = require("./constants");
+const {OPCODES, OPERATORS} = require("./constants");
+const {ControlFlowGraph} = require("./optimizer/cfg-graph");
 
 class QuadruplesManager {
   constructor() {
@@ -61,6 +62,11 @@ class QuadruplesManager {
 
   pushGoToF(value = null) {
     this.pushQuadruple([OPCODES.GOTO_F, value, null, null]);
+  }
+
+  optimizeIR() {
+    const graph = new ControlFlowGraph(this.getQuadruples());
+    this.setQuadruples(graph.toQuads());
   }
 }
 
