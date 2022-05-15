@@ -37,41 +37,40 @@ class IntermediateRepresentation {
   }
 
   processFunctionCallOperand(alias) {
-    const functionOperand = this.scopeManager.findAlias(alias);
-    const aliases = this.scopeManager.getCurrentScope().getAliases();
+    const callable = this.scopeManager.findAlias(alias);
     this.quadruplesManager.pushAir();
-    Object.keys(aliases).forEach((alias) => {
-      if (aliases[alias].isArgument) {
-        const operand = this.operands.pop();
-        this.quadruplesManager.pushAssign(aliases[alias].address, operand, aliases[alias].address);
-      }
-    });
-    this.quadruplesManager.pushCall(functionOperand.start);
-    if (functionOperand.type !== TYPES.VOID) {
+    for (const {address} of callable.args) {
+      const operand = this.operands.pop();
+      this.quadruplesManager.pushAssign(address, operand, address);
+    }
+    this.quadruplesManager.pushCall(callable.start);
+    if (callable.type !== TYPES.VOID) {
       const memory = this.memoryManager.getMemorySegment(
         MEMORY_TYPES.TEMP,
-        functionOperand.type
+        callable.type
       );
       const address = memory.getAddress();
       this.operands.push(address);
-      this.quadruplesManager.pushAssign(address, functionOperand.address, address);
+      this.quadruplesManager.pushAssign(address, callable.address, address);
     }
   }
 
   processOperator(operator) {
-    const popLeft = OPERANDS[operator] === 2;
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
-      popLeft && this.operands.pop(),
+      OPERANDS[operator] === 2 && this.operands.pop(),
     ];
-    let type;
-
     try {
-      type = TTO_CUBE.getType(
+      let type = TTO_CUBE.getType(
         this.memoryManager.getType(rightOperand),
         this.memoryManager.getType(leftOperand),
         operator
       );
+      const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, type);
+      let address = memory.getAddress();
+      if (operator === OPERATORS.ASSIGN) address = leftOperand;
+      this.quadruplesManager.pushQuadruple([operator, leftOperand, rightOperand, address]);
+      this.operands.push(address);
     } catch (err) {
       console.table(this.prettyQuads());
       throw new Error(
@@ -80,12 +79,16 @@ class IntermediateRepresentation {
         )} ${operator} ${this.memoryManager.getType(leftOperand)}`
       );
     }
+  }
 
-    const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, type);
-    let address = memory.getAddress();
-    if (operator === OPERATORS.ASSIGN) address = leftOperand;
-    this.quadruplesManager.pushQuadruple([operator, leftOperand, rightOperand, address]);
-    this.operands.push(address);
+  processArgument(alias, type, dimensions) {
+    const memory = this.memoryManager.getMemorySegment(
+      this.scopeManager.getCurrentFunction()
+        ? MEMORY_TYPES.LOCAL
+        : MEMORY_TYPES.GLOBAL,
+      type
+    );
+    this.scopeManager.addArgumentAlias(alias, type, dimensions, memory.getAddress());
   }
 
   processVariable(alias, type, dimensions) {
@@ -114,7 +117,7 @@ class IntermediateRepresentation {
   }
 
   closeFunction() {
-    if (this.scopeManager.getCurrentFunction().type === TYPES.VOID) {
+    if (this.scopeManager.getCurrentFunction().isVoid()) {
       this.quadruplesManager.pushReturn();
     }
     this.scopeManager.switchCurrentFunction();
@@ -127,13 +130,13 @@ class IntermediateRepresentation {
 
   insertReturn() {
     const returnValue = !this.operands.isEmpty() ? this.operands.pop() : undefined;
-    const currentFunctionType = this.scopeManager.getCurrentFunction().type;
-    if (!returnValue && currentFunctionType === TYPES.VOID) {
+    const currentFunction = this.scopeManager.getCurrentFunction();
+    if (currentFunction.isVoid() && !returnValue) {
       this.quadruplesManager.pushReturn();
-    } else if (this.memoryManager.getType(returnValue) === currentFunctionType) {
+    } else if (currentFunction.isType(this.memoryManager.getType(returnValue))) {
       this.quadruplesManager.pushReturn(returnValue);
     } else {
-      throw new Error(`Types don't match: ${currentFunctionType} != ${this.memoryManager.getType(returnValue)}`);
+      throw new Error(`Return type doesn't match: ${currentFunction.getType()} != ${this.memoryManager.getType(returnValue)}`);
     }
   }
 

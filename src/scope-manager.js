@@ -25,10 +25,46 @@ class Scope {
 
   setAlias(alias, value) {
     this.aliases[alias] = value;
+    return this.aliases[alias];
   }
 
   isParent(scope) {
     return scope.getParent() - 1 === this._parent;
+  }
+}
+
+class CurrentFunction {
+  constructor(target) {
+    this.target = target;
+    this.target.args = [];
+  }
+
+  getType() {
+    return this.target.type;
+  }
+
+  getAddress() {
+    return this.target.address;
+  }
+
+  getStart() {
+    return this.target.start;
+  }
+
+  getArgs() {
+    return this.target.args;
+  }
+
+  addArg(arg) {
+    this.target.args.push(arg);
+  }
+
+  isVoid() {
+    return this.target.type === TYPES.VOID;
+  }
+
+  isType(type) {
+    return this.target.type === type;
   }
 }
 
@@ -64,8 +100,17 @@ class ScopeManager {
   }
 
   switchCurrentFunction(alias = undefined) {
-    if (!alias) this.currentFunction = undefined;
-    else this.currentFunction = this.findAlias(alias);
+    if (!alias) {
+      this.currentFunction = undefined;
+    } else {
+      this.currentFunction = new CurrentFunction(this.findAlias(alias));
+    }
+  }
+
+  addArgumentAlias(alias, type, dimensions, address) {
+    this.addVariableAlias(alias, type, dimensions, address);
+    const arg = this.findAlias(alias);
+    this.getCurrentFunction()?.addArg(arg);
   }
 
   addVariableAlias(alias, type, dimensions, address) {
@@ -78,7 +123,6 @@ class ScopeManager {
       address,
       dimensions: dimensions.map(Number),
       alias,
-      isArgument: !!this.getCurrentFunction()
     });
   }
 
@@ -90,9 +134,10 @@ class ScopeManager {
     scope.setAlias(alias, {
       type,
       address,
-      arguments: [],
       start,
+      args: [],
     });
+    this.switchCurrentFunction(alias);
   }
 
   findAlias(alias, dimensions = undefined) {
@@ -112,6 +157,7 @@ class ScopeManager {
       }
       scope = this.getParentScope(scope);
     }
+    throw new Error(`Alias "${alias}": does not exists`);
   }
 
   push() {

@@ -321,13 +321,13 @@ params:
 params_1: /* empty */
     |
     type_s ID params_2 {
-        yy.ir.processVariable($2, yy.ir.currentType, []);
+        yy.ir.processArgument($2, yy.ir.currentType, []);
     };
 
 params_2: /* empty */
     |
     COMMA type_s ID params_2 {
-        yy.ir.processVariable($3, yy.ir.currentType, []);
+        yy.ir.processArgument($3, yy.ir.currentType, []);
     };
 
 function:
