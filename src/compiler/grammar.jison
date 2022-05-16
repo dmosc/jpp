@@ -10,11 +10,11 @@
         const JumpsManager = require(join(__basedir, 'jumps-manager.js'));
         const constants = require(join(__basedir, 'constants.js'));
 
-        const scopeManager = new ScopeManager();
         const memoryManager = new MemoryManager();
+        const scopeManager = new ScopeManager(memoryManager);
         const quadruplesManager = new QuadruplesManager();
         const jumpsManager = new JumpsManager();
-        yy.ir = new IntermediateRepresentation(scopeManager, memoryManager, quadruplesManager, jumpsManager);
+        yy.ir = new IntermediateRepresentation(scopeManager, quadruplesManager, jumpsManager);
         yy.constants = constants;
     }
 %}
@@ -321,13 +321,13 @@ params:
 params_1: /* empty */
     |
     type_s ID params_2 {
-        yy.ir.processVariable($2, yy.ir.currentType, []);
+        yy.ir.processArgument($2, yy.ir.currentType, []);
     };
 
 params_2: /* empty */
     |
     COMMA type_s ID params_2 {
-        yy.ir.processVariable($3, yy.ir.currentType, []);
+        yy.ir.processArgument($3, yy.ir.currentType, []);
     };
 
 function:

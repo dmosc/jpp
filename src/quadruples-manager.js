@@ -1,5 +1,5 @@
-const {OPCODES, OPERATORS} = require("./constants");
-const {ControlFlowGraph} = require("./optimizer/cfg-graph");
+const { OPCODES, OPERATORS, OPERANDS } = require('./constants');
+const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
 class QuadruplesManager {
   constructor() {
@@ -41,7 +41,7 @@ class QuadruplesManager {
   }
 
   pushAssign(left, right, target) {
-    this.pushQuadruple([OPERATORS.ASSIGN, left, right, target])
+    this.pushQuadruple([OPERATORS.ASSIGN, left, right, target]);
   }
 
   pushCall(to) {

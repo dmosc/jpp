@@ -1,4 +1,5 @@
 const { MEMORY_TYPES, TYPES } = require('./constants');
+const Memory = require('./memory');
 
 /**
  * Memory management
@@ -37,27 +38,6 @@ const { MEMORY_TYPES, TYPES } = require('./constants');
  * We can get the raw address with
  * address & 0x7FFFFFF
  */
-
-class Memory {
-  constructor(start, type) {
-    this.start = start;
-    this.current = start;
-    // our mask is 0x7FFFFFF, so one less is 0x7FFFFFE
-    this.end = start + 0x7fffffe;
-    this.type = type;
-  }
-
-  getAddress() {
-    if (this.current < this.end) {
-      return this.current++;
-    }
-    throw new Error('No more memory available');
-  }
-
-  reset() {
-    this.current = this.start;
-  }
-}
 
 class MemoryManager {
   constructor() {
@@ -104,14 +84,13 @@ class MemoryManager {
   }
 
   getAddressDebug(address) {
-    if (isNaN(address)) {
-      throw new Error(
-        `Argument "address" must be number, got: ${typeof address}`
-      );
+    if (!isNaN(address)) {
+      return `${this.getScope(address)}.${this.getType(
+        address
+      )}.${this.getAddress(address)}`;
+    } else {
+      return address;
     }
-    return `${this.getScope(address)} ${this.getType(
-      address
-    )} ${this.getAddress(address)}`;
   }
 
   clearLocals() {

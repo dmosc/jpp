@@ -10,7 +10,7 @@ func int test() {
 func void test2(string a, int b) {
     var float c, d, e;
     c = 1.0 * (b >> 1);
-    d = ~((b % 45) + c * 45);
+    d = 1.0 * ~((b % 45) + c * 45);
     e = c * d;
 }
 
