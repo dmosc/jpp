@@ -3,10 +3,18 @@
     const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const IntermediateRepresentation = require(join(__basedir, 'ir.js'));
+        const IntermediateRepresentation = require(join(__basedir, 'intermediate-representation.js'));
+        const ScopeManager = require(join(__basedir, 'scope-manager.js'));
+        const MemoryManager = require(join(__basedir, 'memory-manager.js'));
+        const QuadruplesManager = require(join(__basedir, 'quadruples-manager.js'));
+        const JumpsManager = require(join(__basedir, 'jumps-manager.js'));
         const constants = require(join(__basedir, 'constants.js'));
 
-        yy.ir = new IntermediateRepresentation();
+        const scopeManager = new ScopeManager();
+        const memoryManager = new MemoryManager();
+        const quadruplesManager = new QuadruplesManager();
+        const jumpsManager = new JumpsManager();
+        yy.ir = new IntermediateRepresentation(scopeManager, memoryManager, quadruplesManager, jumpsManager);
         yy.constants = constants;
     }
 %}
@@ -213,31 +221,31 @@ const_type:
 
 /* DECORATORS */
 @push_jump: {
-    yy.ir.pushJump();
+    yy.ir.jumpsManager.pushJump(yy.ir.quadruplesManager.getQuadruplesSize());
 };
 
-@pop_jump: {
-    yy.ir.popJumpN(0);
+@link_jump_down: {
+    yy.ir.linkJump(yy.ir.jumpsManager.popJump(0), yy.ir.quadruplesManager.getQuadruplesSize());
 };
 
-@pop_jump_n1: {
-    yy.ir.popJumpN(1);
+@link_jump_down_n1: {
+    yy.ir.linkJump(yy.ir.jumpsManager.popJump(1), yy.ir.quadruplesManager.getQuadruplesSize());
 };
 
-@pop_jump_n2: {
-    yy.ir.popJumpN(2);
+@link_jump_down_n2: {
+    yy.ir.linkJump(yy.ir.jumpsManager.popJump(2), yy.ir.quadruplesManager.getQuadruplesSize());
 };
 
-@pop_jump_n3: {
-    yy.ir.popJumpN(3);
+@link_jump_down_n3: {
+    yy.ir.linkJump(yy.ir.jumpsManager.popJump(3), yy.ir.quadruplesManager.getQuadruplesSize());
 };
 
 @push_delimiter: {
-    yy.ir.pushDelimiter();
+    yy.ir.jumpsManager.pushDelimiter();
 };
 
 @pop_all_jumps: {
-    yy.ir.popAllJumps();
+    yy.ir.jumpsManager.popAllJumps();
 };
 
 @push_scope: {
@@ -249,27 +257,29 @@ const_type:
 };
 
 @goto_f: {
-    yy.ir.insertGoToF();
+    yy.ir.quadruplesManager.pushGoToF(
+        yy.ir.quadruplesManager.getQuadrupleValue(yy.ir.quadruplesManager.getQuadruplesSize() - 1, 3)
+    );
 };
 
 @goto: {
-    yy.ir.insertGoTo();
+    yy.ir.quadruplesManager.pushGoTo();
 };
 
-@pop_loop_jump: {
-    yy.ir.popLoopJumpN(0);
+@link_jump_up: {
+    yy.ir.linkJump(yy.ir.quadruplesManager.getQuadruplesSize() - 1, yy.ir.jumpsManager.popJump(0));
 };
 
-@pop_loop_jump_n1: {
-    yy.ir.popLoopJumpN(1);
+@link_jump_up_n1: {
+    yy.ir.linkJump(yy.ir.quadruplesManager.getQuadruplesSize() - 1, yy.ir.jumpsManager.popJump(1));
 };
 
-@pop_loop_jump_n2: {
-    yy.ir.popLoopJumpN(2);
+@link_jump_up_n2: {
+    yy.ir.linkJump(yy.ir.quadruplesManager.getQuadruplesSize() - 1, yy.ir.jumpsManager.popJump(2));
 };
 
-@pop_loop_jump_n3: {
-    yy.ir.popLoopJumpN(3);
+@link_jump_up_n3: {
+    yy.ir.linkJump(yy.ir.quadruplesManager.getQuadruplesSize() - 1, yy.ir.jumpsManager.popJump(3));
 };
 
 @close_function: {
@@ -281,14 +291,14 @@ program:
     program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.ir.prettyQuads());
-        //yy.ir.optimizeIR();
+        //yy.ir.quadruplesManager.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
     };
 
 program_init:
     PROGRAM ID {
-        yy.ir.insertProgramInit();
+        yy.ir.quadruplesManager.pushInit();
         yy.ir.processFunction($2, 'VOID');
     };
 
@@ -409,15 +419,15 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 @pop_all_jumps;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @link_jump_down;
 
 condition_1: /* empty */
     |
-    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @pop_jump_n1 condition_1 |
+    ELIF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 |
     ELSE @push_scope block @pop_scope;
 
 for_loop:
-    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f @push_jump @goto @push_jump for_loop_3 CLOSE_PARENTHESIS @goto @pop_loop_jump_n3 @pop_jump_n1 block @goto @pop_loop_jump @pop_jump @pop_scope;
+    FOR OPEN_PARENTHESIS @push_scope for_loop_1 @push_jump for_loop_2 @push_jump @goto_f @push_jump @goto @push_jump for_loop_3 CLOSE_PARENTHESIS @goto @link_jump_up_n3 @link_jump_down_n1 block @goto @link_jump_up @link_jump_down @pop_scope;
 
 for_loop_1:
     SEMICOLON |
@@ -432,7 +442,7 @@ for_loop_3:
     assign;
 
 while_loop:
-    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @pop_jump @pop_loop_jump;
+    WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @link_jump_down @link_jump_up;
 
 function_call:
     ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
