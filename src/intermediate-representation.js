@@ -1,30 +1,37 @@
 const {
   TYPES,
-  TTO_CUBE,
-  OPCODES,
   OPERATORS,
   OPERANDS,
   MEMORY_TYPES,
+  OPCODES,
 } = require('./constants');
-const {Stack} = require('datastructures-js');
+const { Stack } = require('datastructures-js');
 
 class IntermediateRepresentation {
-  constructor(scopeManager, memoryManager, quadruplesManager, jumpsManager) {
+  constructor(scopeManager, quadruplesManager, jumpsManager) {
     this.scopeManager = scopeManager;
-    this.memoryManager = memoryManager;
     this.quadruplesManager = quadruplesManager;
     this.jumpsManager = jumpsManager;
     this.operands = new Stack();
     this.currentType = undefined;
   }
 
-  // LOADERS
+  getScopeManager() {
+    return this.scopeManager;
+  }
+
+  getQuadruplesManager() {
+    return this.quadruplesManager;
+  }
+
   processConstantOperand(operand) {
     if (operand.data !== undefined && TYPES[operand.type]) {
-      const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, operand.type);
-      const address = memory.getAddress();
+      const address = this.getScopeManager().malloc(
+        MEMORY_TYPES.TEMP,
+        operand.type
+      );
       this.operands.push(address);
-      this.quadruplesManager.pushLoad(operand.data, address);
+      this.getQuadruplesManager().pushLoad(operand.data, address);
     } else {
       throw new Error('Invalid operand format');
     }
@@ -32,148 +39,119 @@ class IntermediateRepresentation {
 
   processVariableOperand(alias, dimensions) {
     dimensions = dimensions.map(Number);
-    const variableOperand = this.scopeManager.findAlias(alias, dimensions);
+    const variableOperand = this.getScopeManager().findAlias(alias, dimensions);
     this.operands.push(variableOperand.address);
   }
 
   processFunctionCallOperand(alias) {
-    const callable = this.scopeManager.findAlias(alias);
-    this.quadruplesManager.pushAir();
-    for (const {address} of callable.args) {
+    const scopeManager = this.getScopeManager();
+    const quadruplesManager = this.getQuadruplesManager();
+    const callable = scopeManager.findAlias(alias);
+    quadruplesManager.pushAir();
+    for (const { address } of callable.args) {
       const operand = this.operands.pop();
-      this.quadruplesManager.pushAssign(address, operand, address);
+      quadruplesManager.pushAssign(address, operand, address);
     }
-    this.quadruplesManager.pushCall(callable.start);
+    quadruplesManager.pushCall(callable.start);
     if (callable.type !== TYPES.VOID) {
-      const memory = this.memoryManager.getMemorySegment(
-        MEMORY_TYPES.TEMP,
-        callable.type
-      );
-      const address = memory.getAddress();
+      const address = scopeManager.malloc(MEMORY_TYPES.TEMP, callable.type);
       this.operands.push(address);
-      this.quadruplesManager.pushAssign(address, callable.address, address);
+      quadruplesManager.pushAssign(address, callable.address, address);
     }
   }
 
   processOperator(operator) {
+    const scopeManager = this.getScopeManager();
+    const quadruplesManager = this.getQuadruplesManager();
     const [rightOperand, leftOperand] = [
       this.operands.pop(),
       OPERANDS[operator] === 2 && this.operands.pop(),
     ];
-    try {
-      let type = TTO_CUBE.getType(
-        this.memoryManager.getType(rightOperand),
-        this.memoryManager.getType(leftOperand),
-        operator
-      );
-      const memory = this.memoryManager.getMemorySegment(MEMORY_TYPES.TEMP, type);
-      let address = memory.getAddress();
-      if (operator === OPERATORS.ASSIGN) address = leftOperand;
-      this.quadruplesManager.pushQuadruple([operator, leftOperand, rightOperand, address]);
-      this.operands.push(address);
-    } catch (err) {
-      console.table(this.prettyQuads());
-      throw new Error(
-        `Could not get types from ${this.memoryManager.getType(
-          rightOperand
-        )} ${operator} ${this.memoryManager.getType(leftOperand)}`
-      );
-    }
+    const type = scopeManager.getTTO(leftOperand, rightOperand, operator);
+    let address =
+      operator === OPERATORS.ASSIGN
+        ? leftOperand
+        : scopeManager.malloc(MEMORY_TYPES.TEMP, type);
+    quadruplesManager.pushQuadruple([
+      operator,
+      leftOperand,
+      rightOperand,
+      address,
+    ]);
+    this.operands.push(address);
   }
 
   processArgument(alias, type, dimensions) {
-    const memory = this.memoryManager.getMemorySegment(
-      this.scopeManager.getCurrentFunction()
-        ? MEMORY_TYPES.LOCAL
-        : MEMORY_TYPES.GLOBAL,
-      type
-    );
-    this.scopeManager.addArgumentAlias(alias, type, dimensions, memory.getAddress());
+    this.getScopeManager().addArgumentAlias(alias, type, dimensions);
   }
 
   processVariable(alias, type, dimensions) {
-    const memory = this.memoryManager.getMemorySegment(
-      this.scopeManager.getCurrentFunction()
-        ? MEMORY_TYPES.LOCAL
-        : MEMORY_TYPES.GLOBAL,
-      type
-    );
-    this.scopeManager.addVariableAlias(alias, type, dimensions, memory.getAddress());
+    this.getScopeManager().addVariableAlias(alias, type, dimensions);
   }
 
   processFunction(alias, type) {
     type = String(type).toUpperCase();
-    const memory = this.memoryManager.getMemorySegment(
-      MEMORY_TYPES.GLOBAL,
-      type
-    );
-    this.scopeManager.addFunctionAlias(
+    const scopeManager = this.getScopeManager();
+    scopeManager.addFunctionAlias(
       alias,
       type,
-      this.quadruplesManager.getQuadruplesSize(),
-      type !== TYPES.VOID ? memory.getAddress() : undefined
+      this.getQuadruplesManager().getQuadruplesSize()
     );
-    this.scopeManager.switchCurrentFunction(alias);
+    scopeManager.switchCurrentFunction(alias);
   }
 
   closeFunction() {
-    if (this.scopeManager.getCurrentFunction().isVoid()) {
-      this.quadruplesManager.pushReturn();
+    const scopeManager = this.getScopeManager();
+    if (scopeManager.getCurrentFunction().isVoid()) {
+      this.getQuadruplesManager().pushReturn();
     }
-    this.scopeManager.switchCurrentFunction();
-    this.memoryManager.clearLocals();
+    scopeManager.switchCurrentFunction(); // Unset current function.
+    scopeManager.resetLocalMemory();
   }
 
   linkJump(from, to) {
-    this.quadruplesManager.setQuadrupleValue(from, 3, to);
+    this.getQuadruplesManager().setQuadrupleValue(from, 3, to);
   }
 
   insertReturn() {
-    const returnValue = !this.operands.isEmpty() ? this.operands.pop() : undefined;
-    const currentFunction = this.scopeManager.getCurrentFunction();
-    if (currentFunction.isVoid() && !returnValue) {
-      this.quadruplesManager.pushReturn();
-    } else if (currentFunction.isType(this.memoryManager.getType(returnValue))) {
-      this.quadruplesManager.pushReturn(returnValue);
+    const quadruplesManager = this.getQuadruplesManager();
+    const scopeManager = this.getScopeManager();
+    const currentFunction = scopeManager.getCurrentFunction();
+    const returnAddress = !this.operands.isEmpty()
+      ? this.operands.pop()
+      : undefined;
+    const addressDetails = scopeManager.addressDetails(returnAddress);
+    if (currentFunction.isVoid() && !returnAddress) {
+      quadruplesManager.pushReturn();
+    } else if (currentFunction.isType(addressDetails.type)) {
+      quadruplesManager.pushReturn(returnAddress);
     } else {
-      throw new Error(`Return type doesn't match: ${currentFunction.getType()} != ${this.memoryManager.getType(returnValue)}`);
+      throw new Error(
+        `Return type doesn't match: ${currentFunction.getType()} != ${
+          addressDetails.type
+        }`
+      );
     }
   }
 
   prettyQuads() {
-    return this.quadruplesManager.getQuadruples().map(([op, lop, rop, rrop]) => {
-      const ops = OPERANDS[op];
-      if (ops) {
-        if (ops === 1) {
-          return [
-            op,
-            null,
-            this.memoryManager.getAddressDebug(rop),
-            this.memoryManager.getAddressDebug(rrop),
-          ];
-        } else {
-          return [
-            op,
-            this.memoryManager.getAddressDebug(lop),
-            this.memoryManager.getAddressDebug(rop),
-            this.memoryManager.getAddressDebug(rrop),
-          ];
-        }
-      }
-
-      if (op === OPCODES.LOAD || op === OPCODES.RETURN) {
+    const quadruples = this.getQuadruplesManager().getQuadruples();
+    const memoryManager = this.getScopeManager().getMemoryManager();
+    return quadruples.map(([op, lop, rop, rrop]) => {
+      if (OPERANDS[op]) {
         return [
           op,
-          lop,
-          rop,
-          rrop !== null ? this.memoryManager.getAddressDebug(rrop) : null,
+          memoryManager.getAddressDebug(lop),
+          memoryManager.getAddressDebug(rop),
+          memoryManager.getAddressDebug(rrop),
         ];
       }
-
-      if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
-        return [op, this.memoryManager.getAddressDebug(lop), rop, rrop];
+      if (op === OPCODES.LOAD || op === OPCODES.RETURN) {
+        return [op, lop, rop, memoryManager.getAddressDebug(rrop)];
       }
-
+      if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
+        return [op, memoryManager.getAddressDebug(lop), rop, rrop];
+      }
       return [op, lop, rop, rrop];
     });
   }

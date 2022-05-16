@@ -172,6 +172,7 @@ const TTO_CUBE = Object.freeze({
     },
   },
   getType: function (typeA, typeB, operator) {
+    console.log(typeA, typeB, operator);
     if (this[typeA][operator]) return this[typeA][operator];
     if (this[typeA][typeB][operator]) return this[typeA][typeB][operator];
     throw new Error(
