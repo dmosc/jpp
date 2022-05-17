@@ -7,9 +7,11 @@ class Memory {
     this.type = type;
   }
 
-  getAddress() {
+  getAddress(size = 1) {
     if (this.current < this.end) {
-      return this.current++;
+      const address = this.current;
+      this.current += size;
+      return address;
     }
     throw new Error('No more memory available');
   }

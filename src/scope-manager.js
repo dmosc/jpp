@@ -57,13 +57,15 @@ class ScopeManager {
     if (scope.getAlias(alias)) {
       throw new Error(`Can\'t declare variable ${alias}:${type}`);
     }
+    dimensions = dimensions.map(Number);
+    const size = dimensions.reduce((size, dimension) => size * dimension, 1);
     const memoryType = this.getCurrentFunction()
       ? MEMORY_TYPES.LOCAL
       : MEMORY_TYPES.GLOBAL;
     scope.setAlias(alias, {
       type,
-      address: this.malloc(memoryType, type),
-      dimensions: dimensions.map(Number),
+      address: this.malloc(memoryType, type, size),
+      dimensions,
       alias,
     });
   }
@@ -130,12 +132,12 @@ class ScopeManager {
     this.scope = this.getParentScope(this.scope) ?? this.scope;
   }
 
-  malloc(memoryType, dataType) {
+  malloc(memoryType, dataType, size) {
     const memory = this.getMemoryManager().getMemorySegment(
       memoryType,
       dataType
     );
-    return memory.getAddress();
+    return memory.getAddress(size);
   }
 
   getTTO(leftAddress, rightAddress, operator) {

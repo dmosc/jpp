@@ -39,8 +39,22 @@ class IntermediateRepresentation {
 
   processVariableOperand(alias, dimensions) {
     dimensions = dimensions.map(Number);
-    const variableOperand = this.getScopeManager().findAlias(alias, dimensions);
-    this.operands.push(variableOperand.address);
+    const scopeManager = this.getScopeManager();
+    const quadruplesManager = this.getQuadruplesManager();
+    const variableOperand = scopeManager.findAlias(alias, dimensions);
+    let address = variableOperand.address;
+    for (let i = variableOperand.dimensions.length - 1; i >= 0; --i) {
+      const offsetAddress = this.operands.pop();
+      const addressDetails = scopeManager.addressDetails(offsetAddress);
+      const tempAddress = scopeManager.malloc(MEMORY_TYPES.TEMP, addressDetails.type);
+      if (i === 0) {
+        quadruplesManager.pushAddressOffsetAdd(address, offsetAddress, tempAddress);
+      } else {
+        quadruplesManager.pushAddressOffsetMultiply(address, offsetAddress, tempAddress);
+      }
+      address = tempAddress;
+    }
+    this.operands.push(address);
   }
 
   processFunctionCallOperand(alias) {
@@ -138,7 +152,7 @@ class IntermediateRepresentation {
     const quadruples = this.getQuadruplesManager().getQuadruples();
     const memoryManager = this.getScopeManager().getMemoryManager();
     return quadruples.map(([op, lop, rop, rrop]) => {
-      if (OPERANDS[op]) {
+      if (OPERANDS[op] || op === OPCODES.ADDROFF_ADD || op === OPCODES.ADDROFF_MULTIPLY) {
         return [
           op,
           memoryManager.getAddressDebug(lop),

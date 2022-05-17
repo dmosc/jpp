@@ -1,4 +1,4 @@
-const { OPCODES, OPERATORS, OPERANDS } = require('./constants');
+const { OPCODES, OPERATORS } = require('./constants');
 const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
 class QuadruplesManager {
@@ -42,6 +42,14 @@ class QuadruplesManager {
 
   pushAssign(left, right, target) {
     this.pushQuadruple([OPERATORS.ASSIGN, left, right, target]);
+  }
+
+  pushAddressOffsetAdd(origin, offset, target) {
+    this.pushQuadruple([OPCODES.ADDROFF_ADD, origin, offset, target]);
+  }
+
+  pushAddressOffsetMultiply(origin, offset, target) {
+    this.pushQuadruple([OPCODES.ADDROFF_MULTIPLY, origin, offset, target]);
   }
 
   pushCall(to) {

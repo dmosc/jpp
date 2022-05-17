@@ -14,6 +14,8 @@ const OPCODES = Object.freeze({
   GOTO_F: 'GOTO_F',
   RETURN: 'RETURN',
   INIT: 'INIT',
+  ADDROFF_ADD: 'ADDROFF_ADD',
+  ADDROFF_MULTIPLY: 'ADDROFF_MULTIPLY',
 });
 
 const OPERATORS = Object.freeze({
@@ -172,7 +174,6 @@ const TTO_CUBE = Object.freeze({
     },
   },
   getType: function (typeA, typeB, operator) {
-    console.log(typeA, typeB, operator);
     if (this[typeA][operator]) return this[typeA][operator];
     if (this[typeA][typeB][operator]) return this[typeA][typeB][operator];
     throw new Error(

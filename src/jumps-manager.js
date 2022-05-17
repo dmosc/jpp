@@ -25,7 +25,6 @@ class JumpsManager {
   }
 
   popAllJumps(delimiter = false) {
-    console.log(this.getJumps());
     while (!this.isEmpty() && this.peek() !== -1) this.popJump(0);
     if (this.popJump(0) !== -1 && delimiter) {
       throw new Error('Expecting delimiter!');
