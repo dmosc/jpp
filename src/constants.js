@@ -3,6 +3,7 @@ const TYPES = Object.freeze({
   FLOAT: 'FLOAT',
   STRING: 'STRING',
   VOID: 'VOID',
+  ADDRESS: 'ADDRESS',
 });
 
 const OPCODES = Object.freeze({
@@ -14,8 +15,9 @@ const OPCODES = Object.freeze({
   GOTO_F: 'GOTO_F',
   RETURN: 'RETURN',
   INIT: 'INIT',
-  ADDROFF_ADD: 'ADDROFF_ADD',
-  ADDROFF_MULTIPLY: 'ADDROFF_MULTIPLY',
+  STORE: 'STORE',
+  ASTORE: 'ASTORE',
+  ALOAD: 'ALOAD',
 });
 
 const OPERATORS = Object.freeze({
@@ -189,6 +191,10 @@ const MEMORY_TYPES = Object.freeze({
   STACK: 'STACK',
 });
 
+const MEMORY_FLAGS = Object.freeze({
+  ADDRESS_REFERENCE: 1 << 26,
+});
+
 module.exports = {
   TYPES,
   OPCODES,
@@ -197,4 +203,5 @@ module.exports = {
   TTO_CUBE,
   OPERATOR_FUNCTIONS,
   MEMORY_TYPES,
+  MEMORY_FLAGS,
 };

@@ -132,12 +132,12 @@ class ScopeManager {
     this.scope = this.getParentScope(this.scope) ?? this.scope;
   }
 
-  malloc(memoryType, dataType, size) {
+  malloc(memoryType, dataType, size, flags) {
     const memory = this.getMemoryManager().getMemorySegment(
       memoryType,
       dataType
     );
-    return memory.getAddress(size);
+    return memory.allocateAddress(size, flags);
   }
 
   getTTO(leftAddress, rightAddress, operator) {

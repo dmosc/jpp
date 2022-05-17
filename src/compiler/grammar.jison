@@ -257,9 +257,7 @@ const_type:
 };
 
 @goto_f: {
-    yy.ir.quadruplesManager.pushGoToF(
-        yy.ir.quadruplesManager.getQuadrupleValue(yy.ir.quadruplesManager.getQuadruplesSize() - 1, 3)
-    );
+    yy.ir.quadruplesManager.pushGoToF(yy.ir.operands.pop());
 };
 
 @goto: {
@@ -401,7 +399,7 @@ destruct:
 
 assign:
     variable assignment_op_l1 expression {
-        yy.ir.processOperator($2);
+        yy.ir.processAssignment($2);
     };
 
 read:

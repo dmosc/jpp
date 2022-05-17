@@ -1,4 +1,4 @@
-const { MEMORY_TYPES, TYPES } = require('./constants');
+const { MEMORY_TYPES, TYPES, MEMORY_FLAGS } = require('./constants');
 const Memory = require('./memory');
 
 /**
@@ -31,12 +31,20 @@ const Memory = require('./memory');
  * We can access the memory scope just by shifting and masking
  * address >>> 27 & 0x7
  *
+ * The next bit represents if the address is a reference to
+ * another address
+ * 00000X00 00000000 00000000 0000000
+ * 0 = Variable Reference
+ * 1 = Address Reference
+ * We can check if it's an address reference with
+ * address >>> 26 & 0x1
+ *
  * That leaves the rest of the bits available for addresses
- * 00000XXX XXXXXXXX XXXXXXXX XXXXXXXX
- * That means we have a total of 2^27 addresses to use,
- * a total of 134,217,728 usable addresses
+ * 000000XX XXXXXXXX XXXXXXXX XXXXXXXX
+ * That means we have a total of 2^26 addresses to use,
+ * a total of 67,108,864 usable addresses
  * We can get the raw address with
- * address & 0x7FFFFFF
+ * address & 0x3FFFFFF
  */
 
 class MemoryManager {
@@ -80,7 +88,11 @@ class MemoryManager {
   }
 
   getAddress(address) {
-    return address & 0x7ffffff;
+    return address & 0x3ffffff;
+  }
+
+  isAddressReference(address) {
+    return address & MEMORY_FLAGS.ADDRESS_REFERENCE;
   }
 
   getAddressDebug(address) {

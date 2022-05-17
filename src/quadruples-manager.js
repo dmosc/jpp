@@ -32,6 +32,10 @@ class QuadruplesManager {
     this.quadruples.push(quadruple);
   }
 
+  pushALoad(baseAddress, offset, address) {
+    this.pushQuadruple([OPCODES.ALOAD, baseAddress, offset, address]);
+  }
+
   pushLoad(data, address) {
     this.pushQuadruple([OPCODES.LOAD, data, null, address]);
   }
@@ -44,12 +48,8 @@ class QuadruplesManager {
     this.pushQuadruple([OPERATORS.ASSIGN, left, right, target]);
   }
 
-  pushAddressOffsetAdd(origin, offset, target) {
-    this.pushQuadruple([OPCODES.ADDROFF_ADD, origin, offset, target]);
-  }
-
-  pushAddressOffsetMultiply(origin, offset, target) {
-    this.pushQuadruple([OPCODES.ADDROFF_MULTIPLY, origin, offset, target]);
+  pushOperator(operator, left, right, target) {
+    this.pushQuadruple([operator, left, right, target]);
   }
 
   pushCall(to) {
