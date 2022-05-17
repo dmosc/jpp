@@ -87,7 +87,7 @@ class IntermediateRepresentation {
     const callable = scopeManager.findAlias(alias);
     quadruplesManager.pushAir();
     for (const { address } of callable.args) {
-      const operand = this.operands.pop();
+      const operand = this.popAddress();
       quadruplesManager.pushAssign(address, operand, address);
     }
     quadruplesManager.pushCall(callable.start);
@@ -191,7 +191,7 @@ class IntermediateRepresentation {
     const scopeManager = this.getScopeManager();
     const currentFunction = scopeManager.getCurrentFunction();
     const returnAddress = !this.operands.isEmpty()
-      ? this.operands.pop()
+      ? this.popAddress()
       : undefined;
     const addressDetails = scopeManager.addressDetails(returnAddress);
     if (currentFunction.isVoid() && !returnAddress) {

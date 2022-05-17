@@ -4,7 +4,7 @@ var int arr[1], arr1[2][10];
 var string text1, text2;
 
 func int test() {
-    return 1 + 1;
+    return arr1[arr[0]][0];
 }
 
 func void test2(string a, int b) {
