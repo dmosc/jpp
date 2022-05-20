@@ -291,10 +291,10 @@ program_imports: /* empty */
 
 imports:
     CONST_STRING {
-        yy.data.createSubParser($1);
+        yy.data.createSubParser(yy.data.currDirectory, $1.substring(1, $1.length - 1), yy.ir);
     } |
     CONST_STRING COMMA imports {
-        yy.data.createSubParser($1);
+        yy.data.createSubParser(yy.data.currDirectory, $1.substring(1, $1.length - 1), yy.ir);
     };
 
 program_init:

@@ -49,13 +49,11 @@ const testMap = [
 ];
 
 test.each(testMap)('Compile $name ($description)', ({ name, error }) => {
-  const fileContent = readFileSync(
-    join(__dirname, 'files', `${name}.jpp`),
-    'utf-8'
-  );
+  const filePath = join(__dirname, 'files', `${name}.jpp`);
+  const fileContent = readFileSync(filePath, 'utf-8');
 
   const parse = () => {
-    createNewParser().parse(fileContent);
+    createNewParser(filePath, fileContent);
   };
   if (error) {
     expect(parse).toThrowError();

@@ -7,19 +7,24 @@ const QuadruplesManager = require('../quadruples-manager.js');
 const JumpsManager = require('../jumps-manager.js');
 const constants = require('../constants.js');
 const IntermediateRepresentation = require('../intermediate-representation.js');
+const path = require('path');
 
 const grammar = readFileSync(join(__dirname, 'grammar.jison'), 'utf-8');
 
-const createSubParser = (ir) => {
+const createSubParser = (currDirectory, subFilePath, ir) => {
+  const fullSubFilePath = path.join(currDirectory, subFilePath);
+  const file = readFileSync(fullSubFilePath, 'utf-8');
   const parser = new Parser(grammar, { debug: false });
   parser.yy.data = {
     ir,
     constants,
+    currDirectory: path.dirname(fullSubFilePath),
+    createSubParser,
   };
-  return parser;
+  return parser.parse(file);
 };
 
-const createNewParser = () => {
+const createNewParser = (filePath, file) => {
   const memoryManager = new MemoryManager();
   const scopeManager = new ScopeManager(memoryManager);
   const quadruplesManager = new QuadruplesManager();
@@ -34,9 +39,10 @@ const createNewParser = () => {
   parser.yy.data = {
     ir,
     constants,
-    createSubParser: (file) => createSubParser(ir).parse(file),
+    currDirectory: path.dirname(filePath),
+    createSubParser,
   };
-  return parser;
+  return parser.parse(file);
 };
 
 module.exports = {

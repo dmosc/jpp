@@ -1,3 +1,5 @@
+import("test8.jpp")
+
 func int sum(int x, int y) {
     var int a, b;
     var float c;
