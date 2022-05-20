@@ -290,8 +290,12 @@ program_imports: /* empty */
     IMPORT OPEN_PARENTHESIS imports CLOSE_PARENTHESIS;
 
 imports:
-    CONST_STRING |
-    CONST_STRING COMMA imports;
+    CONST_STRING {
+        yy.data.createSubParser($1);
+    } |
+    CONST_STRING COMMA imports {
+        yy.data.createSubParser($1);
+    };
 
 program_init:
     PROGRAM ID {

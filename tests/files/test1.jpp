@@ -1,5 +1,5 @@
 import(
-    "test"
+    "test2.jpp"
 )
 
 var int a;
