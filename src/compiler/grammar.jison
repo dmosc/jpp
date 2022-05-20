@@ -1,20 +1,10 @@
 %lex
 %{
-    const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const IntermediateRepresentation = require(join(__basedir, 'intermediate-representation.js'));
-        const ScopeManager = require(join(__basedir, 'scope-manager.js'));
-        const MemoryManager = require(join(__basedir, 'memory-manager.js'));
-        const QuadruplesManager = require(join(__basedir, 'quadruples-manager.js'));
-        const JumpsManager = require(join(__basedir, 'jumps-manager.js'));
-        const constants = require(join(__basedir, 'constants.js'));
 
-        const memoryManager = new MemoryManager();
-        const scopeManager = new ScopeManager(memoryManager);
-        const quadruplesManager = new QuadruplesManager();
-        const jumpsManager = new JumpsManager();
-        yy.ir = new IntermediateRepresentation(scopeManager, quadruplesManager, jumpsManager);
+        const { ir, constants } = yy.data;
+        yy.ir = ir;
         yy.constants = constants;
     }
 %}

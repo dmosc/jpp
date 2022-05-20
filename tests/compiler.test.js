@@ -1,4 +1,4 @@
-const { parser } = require('../src/compiler');
+const { createNewParser } = require('../src/compiler');
 const { readFileSync } = require('fs');
 const { join } = require('path');
 
@@ -55,7 +55,7 @@ test.each(testMap)('Compile $name ($description)', ({ name, error }) => {
   );
 
   const parse = () => {
-    parser.parse(fileContent);
+    createNewParser().parse(fileContent);
   };
   if (error) {
     expect(parse).toThrowError();
