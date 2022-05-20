@@ -1,3 +1,7 @@
+import(
+    "test"
+)
+
 var int a;
 var float f1, f2, f3;
 var int arr[1], arr1[2][10];

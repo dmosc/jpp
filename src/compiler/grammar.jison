@@ -111,6 +111,7 @@
 "var"                  { return "VAR"; }
 "read"                 { return "READ"; }
 "write"                { return "WRITE"; }
+"import"               { return "IMPORT"; }
 
 ("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
@@ -286,13 +287,21 @@ const_type:
 
 
 program:
-    program_1 program_init @push_scope block @pop_scope {
+    program_imports program_1 program_init @push_scope block @pop_scope {
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.ir.prettyQuads());
         //yy.ir.quadruplesManager.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
     };
+
+program_imports: /* empty */
+    |
+    IMPORT OPEN_PARENTHESIS imports CLOSE_PARENTHESIS;
+
+imports:
+    CONST_STRING |
+    CONST_STRING COMMA imports;
 
 program_init:
     PROGRAM ID {
