@@ -36,6 +36,10 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.ALOAD, baseAddress, offset, address]);
   }
 
+  pushExit() {
+    this.pushQuadruple([OPCODES.EXIT, null, null, null]);
+  }
+
   pushLoad(data, address) {
     this.pushQuadruple([OPCODES.LOAD, data, null, address]);
   }

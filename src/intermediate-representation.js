@@ -207,6 +207,10 @@ class IntermediateRepresentation {
     }
   }
 
+  insertExit() {
+    this.getQuadruplesManager().pushExit();
+  }
+
   prettyQuads() {
     const quadruples = this.getQuadruplesManager().getQuadruples();
     const memoryManager = this.getScopeManager().getMemoryManager();

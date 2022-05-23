@@ -278,6 +278,7 @@ const_type:
 
 program:
     program_imports program_1 program_init @push_scope block @pop_scope {
+        yy.ir.insertExit();
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
         console.table(yy.ir.prettyQuads());
         //yy.ir.quadruplesManager.optimizeIR();

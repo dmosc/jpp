@@ -18,6 +18,7 @@ const OPCODES = Object.freeze({
   STORE: 'STORE',
   ASTORE: 'ASTORE',
   ALOAD: 'ALOAD',
+  EXIT: 'EXIT',
 });
 
 const OPERATORS = Object.freeze({
