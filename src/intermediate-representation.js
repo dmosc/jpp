@@ -197,7 +197,13 @@ class IntermediateRepresentation {
     if (currentFunction.isVoid() && !returnAddress) {
       quadruplesManager.pushReturn();
     } else if (currentFunction.isType(addressDetails.type)) {
-      quadruplesManager.pushReturn(returnAddress);
+      quadruplesManager.pushQuadruple([
+        OPCODES.STORE,
+        returnAddress,
+        null,
+        currentFunction.getAddress(),
+      ]);
+      quadruplesManager.pushReturn();
     } else {
       throw new Error(
         `Return type doesn't match: ${currentFunction.getType()} != ${
