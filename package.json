@@ -12,6 +12,8 @@
     "format": "lint-staged"
   },
   "dependencies": {
+    "chalk": "^5.0.1",
+    "commander": "^9.2.0",
     "datastructures-js": "^10.2.0",
     "jison": "^0.4.18"
   },
