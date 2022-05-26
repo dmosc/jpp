@@ -49,8 +49,12 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.AIR, null, null, null]);
   }
 
-  pushAssign(left, right, target) {
-    this.pushQuadruple([OPERATORS.ASSIGN, left, right, target]);
+  pushStore(value, address) {
+    this.pushQuadruple([OPCODES.STORE, value, null, address]);
+  }
+
+  pushParam(value, address) {
+    this.pushQuadruple([OPCODES.PARAM, value, null, address]);
   }
 
   pushOperator(operator, left, right, target) {

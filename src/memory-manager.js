@@ -71,9 +71,11 @@ class MemoryManager {
   }
 
   era() {
-    this.previousMemory = this.eraTypes.map((type) => {
-      return { [type]: this.segments[this.scopeLookup[type]] };
-    });
+    this.previousMemory = Object.assign(
+      ...this.eraTypes.map((type) => {
+        return { [type]: this.segments[this.scopeLookup[type]] };
+      })
+    );
     this.memoryStack.push(this.previousMemory);
 
     this.eraTypes.forEach((type) => {
@@ -89,7 +91,7 @@ class MemoryManager {
     const mem = this.memoryStack.pop();
 
     this.eraTypes.forEach((type) => {
-      this.segments[type] = mem[type];
+      this.segments[this.scopeLookup[type]] = mem[type];
     });
 
     this.previousMemory = this.memoryStack.peek();
@@ -99,6 +101,12 @@ class MemoryManager {
     return this.segments[address >>> 30][(address >>> 27) & 0x7].getValue(
       address & 0x3ffffff
     );
+  }
+
+  getValueForParam(address) {
+    return this.previousMemory[this.getScope(address)][
+      (address >>> 27) & 0x7
+    ].getValue(address & 0x3ffffff);
   }
 
   setValue(address, value) {

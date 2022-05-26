@@ -88,13 +88,13 @@ class IntermediateRepresentation {
     quadruplesManager.pushAir();
     for (const { address } of callable.args) {
       const operand = this.popAddress();
-      quadruplesManager.pushAssign(address, operand, address);
+      quadruplesManager.pushParam(operand, address);
     }
     quadruplesManager.pushCall(callable.start);
     if (callable.type !== TYPES.VOID) {
       const address = scopeManager.malloc(MEMORY_TYPES.TEMP, callable.type);
       this.operands.push(address);
-      quadruplesManager.pushAssign(address, callable.address, address);
+      quadruplesManager.pushStore(callable.address, address);
     }
   }
 
@@ -235,7 +235,7 @@ class IntermediateRepresentation {
       if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
         return [op, memoryManager.getAddressDebug(lop), rop, rrop];
       }
-      if (op === OPCODES.STORE) {
+      if (op === OPCODES.STORE || op === OPCODES.PARAM) {
         return [
           op,
           memoryManager.getAddressDebug(lop),
