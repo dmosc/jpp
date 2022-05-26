@@ -4,6 +4,7 @@ const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 class QuadruplesManager {
   constructor() {
     this.quadruples = [];
+    this.pushGoTo();
   }
 
   getQuadrupleValue(from, to) {
@@ -65,6 +66,8 @@ class QuadruplesManager {
   }
 
   pushInit() {
+    // set goto main to INIT
+    this.setQuadrupleValue(0, 3, this.quadruples.length);
     this.pushQuadruple([OPCODES.INIT, null, null, null]);
   }
 
