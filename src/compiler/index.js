@@ -42,7 +42,10 @@ const createNewParser = (filePath, file) => {
     currDirectory: path.dirname(filePath),
     createSubParser,
   };
-  return parser.parse(file);
+  return {
+    ir,
+    result: parser.parse(file),
+  };
 };
 
 module.exports = {

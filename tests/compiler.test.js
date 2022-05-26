@@ -2,8 +2,6 @@ const { createNewParser } = require('../src/compiler');
 const { readFileSync } = require('fs');
 const { join } = require('path');
 
-global.__basedir = join(__dirname, '..', 'src');
-
 const testMap = [
   {
     name: 'test1',
