@@ -1,3 +1,4 @@
+const { Stack } = require('datastructures-js');
 const { MEMORY_TYPES, TYPES, MEMORY_FLAGS } = require('./constants');
 const Memory = require('./memory');
 
@@ -55,6 +56,7 @@ class MemoryManager {
       MEMORY_TYPES.TEMP,
       MEMORY_TYPES.STACK,
     ];
+    this.eraTypes = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
     this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING];
     this.scopeLookup = this.getLookupTable(this.scopeTypes);
     this.typeLookup = this.getLookupTable(this.dataTypes);
@@ -64,6 +66,46 @@ class MemoryManager {
         return new Memory((scopeBits | typeIndex) << 27, type);
       });
     });
+
+    this.memoryStack = new Stack();
+  }
+
+  era() {
+    this.previousMemory = this.eraTypes.map((type) => {
+      return { [type]: this.segments[this.scopeLookup[type]] };
+    });
+    this.memoryStack.push(this.previousMemory);
+
+    this.eraTypes.forEach((type) => {
+      const scopeIndex = this.scopeLookup[type];
+      const scopeBits = scopeIndex << 3;
+      this.segments[scopeIndex] = this.dataTypes.map((type, typeIndex) => {
+        return new Memory((scopeBits | typeIndex) << 27, type);
+      });
+    });
+  }
+
+  eraPop() {
+    const mem = this.memoryStack.pop();
+
+    this.eraTypes.forEach((type) => {
+      this.segments[type] = mem[type];
+    });
+
+    this.previousMemory = this.memoryStack.peek();
+  }
+
+  getValue(address) {
+    return this.segments[address >>> 30][(address >>> 27) & 0x7].getValue(
+      address & 0x3ffffff
+    );
+  }
+
+  setValue(address, value) {
+    this.segments[address >>> 30][(address >>> 27) & 0x7].setValue(
+      address & 0x3ffffff,
+      value
+    );
   }
 
   getLookupTable(list) {

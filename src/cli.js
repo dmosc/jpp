@@ -2,6 +2,7 @@ const { readFileSync } = require('fs');
 const { createNewParser } = require('./compiler');
 const { program } = require('commander');
 const chalk = require('chalk');
+const VirtualMachine = require('./virtual-machine');
 
 global.__basedir = __dirname;
 

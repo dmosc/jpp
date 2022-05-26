@@ -5,6 +5,8 @@ class Memory {
     // our mask is 0x3FFFFFF, so one less is 0x3FFFFFE
     this.end = start + 0x3fffffe;
     this.type = type;
+
+    this.data = [];
   }
 
   allocateAddress(size = 1, flags) {
@@ -20,6 +22,14 @@ class Memory {
 
   reset() {
     this.current = this.start;
+  }
+
+  getValue(address) {
+    return this.data[address];
+  }
+
+  setValue(address, value) {
+    this.data[address] = value;
   }
 }
 
