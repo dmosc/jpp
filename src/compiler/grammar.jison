@@ -35,10 +35,10 @@
 "!="                   { return "NOT_EQUALS"; }
 
 /* L2 */
-"<"                    { return "LT"; }
 "<="                   { return "LTE"; }
-">"                    { return "GT"; }
 ">="                   { return "GTE"; }
+"<"                    { return "LT"; }
+">"                    { return "GT"; }
 
 /* BOOLEAN_OP */
 /* L1 */

@@ -134,7 +134,7 @@ class VirtualMachine {
   handleCall(_l, _r, quad) {
     this.settingParams = false;
     this.callStack.push(this.ip);
-    this.ip = quad;
+    this.ip = quad - 1;
   }
 
   handleNative(nativeCallName, _r, returnAddress) {
@@ -147,6 +147,7 @@ class VirtualMachine {
   }
 
   handleReturn() {
+    this.memory.eraPop();
     this.ip = this.callStack.pop();
   }
 }

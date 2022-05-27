@@ -1,0 +1,17 @@
+import("libs/io.jpp")
+
+func int fib(int n) {
+    if (n <= 1) {
+        return n;
+    }
+
+    return fib(n - 1) + fib(n - 2);
+}
+
+program Fibonacci {
+    var int i;
+
+    for (i = 1; i < 25; i = i + 1) {
+        write("fib " + i + ": " + fib(i));
+    }
+}
