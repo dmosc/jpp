@@ -57,12 +57,20 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.PARAM, value, null, address]);
   }
 
+  pushNativeParam(value, address) {
+    this.pushQuadruple([OPCODES.NPARAM, value, null, address]);
+  }
+
   pushOperator(operator, left, right, target) {
     this.pushQuadruple([operator, left, right, target]);
   }
 
   pushCall(to) {
     this.pushQuadruple([OPCODES.CALL, null, null, to]);
+  }
+
+  pushNativeCall(nativeCallName, returnAddress) {
+    this.pushQuadruple([OPCODES.NCALL, nativeCallName, null, returnAddress]);
   }
 
   pushReturn(value = null) {

@@ -1,9 +1,11 @@
+import("libs/io.jpp")
+
 var int a, b, c[5];
 
 program TEST_2 {
     a = 10;
     b = 30;
-    read(c[1 * 5]);
+    c[1 * 5] = 1;
     write(c[2 / 1]);
     if (a > b) {
         write("A is greater than B");

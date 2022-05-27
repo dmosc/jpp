@@ -1,3 +1,5 @@
+import("libs/io.jpp")
+
 //
     FOR LOOP TEST
 //
@@ -9,7 +11,7 @@ program TEST_4 {
         for (j = 0; j < 10; j = j + 1) {
             mat[i][j] = i*j;
             l = mat[i][j];
-            write(l);
+            write("i = " + i + ", j = " + j + ", l = " + l);
         }
     }
 }

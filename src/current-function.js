@@ -6,6 +6,14 @@ class CurrentFunction {
     this.target.args = [];
   }
 
+  hasAddress() {
+    return this.target.address !== undefined;
+  }
+
+  setAddress(address) {
+    this.target.address = address;
+  }
+
   getType() {
     return this.target.type;
   }

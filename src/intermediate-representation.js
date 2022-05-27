@@ -85,12 +85,22 @@ class IntermediateRepresentation {
     const scopeManager = this.getScopeManager();
     const quadruplesManager = this.getQuadruplesManager();
     const callable = scopeManager.findAlias(alias);
-    quadruplesManager.pushAir();
+    if (!callable.native) {
+      quadruplesManager.pushAir();
+    }
     for (const { address } of callable.args) {
       const operand = this.popAddress();
-      quadruplesManager.pushParam(operand, address);
+      if (callable.native) {
+        quadruplesManager.pushNativeParam(operand, address);
+      } else {
+        quadruplesManager.pushParam(operand, address);
+      }
     }
-    quadruplesManager.pushCall(callable.start);
+    if (callable.native) {
+      quadruplesManager.pushNativeCall(alias, callable.address || null);
+    } else {
+      quadruplesManager.pushCall(callable.start);
+    }
     if (callable.type !== TYPES.VOID) {
       const address = scopeManager.malloc(MEMORY_TYPES.TEMP, callable.type);
       this.operands.push(address);
@@ -173,6 +183,11 @@ class IntermediateRepresentation {
     scopeManager.switchCurrentFunction(alias);
   }
 
+  processNativeFunction(alias, type) {
+    this.processFunction(alias, type);
+    this.getScopeManager().findAlias(alias).native = true;
+  }
+
   closeFunction() {
     const scopeManager = this.getScopeManager();
     if (scopeManager.getCurrentFunction().isVoid()) {
@@ -229,13 +244,21 @@ class IntermediateRepresentation {
           memoryManager.getAddressDebug(rrop),
         ];
       }
-      if (op === OPCODES.LOAD || op === OPCODES.RETURN) {
+      if (
+        op === OPCODES.LOAD ||
+        op === OPCODES.RETURN ||
+        op === OPCODES.NCALL
+      ) {
         return [op, lop, rop, memoryManager.getAddressDebug(rrop)];
       }
       if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
         return [op, memoryManager.getAddressDebug(lop), rop, rrop];
       }
-      if (op === OPCODES.STORE || op === OPCODES.PARAM) {
+      if (
+        op === OPCODES.STORE ||
+        op === OPCODES.PARAM ||
+        op === OPCODES.NPARAM
+      ) {
         return [
           op,
           memoryManager.getAddressDebug(lop),

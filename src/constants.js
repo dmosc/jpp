@@ -1,9 +1,12 @@
+const WriteFunction = require('./native/write');
+
 const TYPES = Object.freeze({
   INT: 'INT',
   FLOAT: 'FLOAT',
   STRING: 'STRING',
   VOID: 'VOID',
   ADDRESS: 'ADDRESS',
+  OBJECT: 'OBJECT',
 });
 
 const OPCODES = Object.freeze({
@@ -20,6 +23,8 @@ const OPCODES = Object.freeze({
   ALOAD: 'ALOAD',
   EXIT: 'EXIT',
   PARAM: 'PARAM',
+  NCALL: 'NCALL',
+  NPARAM: 'NPARAM',
 });
 
 const OPERATORS = Object.freeze({
@@ -176,6 +181,12 @@ const TTO_CUBE = Object.freeze({
       [OPERATORS.NOT_EQUALS]: TYPES.INT,
       [OPERATORS.ASSIGN]: TYPES.STRING,
     },
+    [TYPES.INT]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+    },
+    [TYPES.FLOAT]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+    },
   },
   getType: function (typeA, typeB, operator) {
     if (this[typeA][operator]) return this[typeA][operator];
@@ -197,6 +208,10 @@ const MEMORY_FLAGS = Object.freeze({
   ADDRESS_REFERENCE: 1 << 26,
 });
 
+const NATIVE_FUNCTIONS = Object.freeze({
+  write: new WriteFunction(),
+});
+
 module.exports = {
   TYPES,
   OPCODES,
@@ -206,4 +221,5 @@ module.exports = {
   OPERATOR_FUNCTIONS,
   MEMORY_TYPES,
   MEMORY_FLAGS,
+  NATIVE_FUNCTIONS,
 };

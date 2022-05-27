@@ -1,5 +1,10 @@
 const { Stack } = require('datastructures-js');
-const { OPCODES, OPERATOR_FUNCTIONS, OPERANDS } = require('../constants');
+const {
+  OPCODES,
+  OPERATOR_FUNCTIONS,
+  OPERANDS,
+  NATIVE_FUNCTIONS,
+} = require('../constants');
 const MemoryManager = require('../memory-manager');
 
 class VirtualMachine {
@@ -40,6 +45,7 @@ class VirtualMachine {
       [OPCODES.ALOAD]: this.handleALoad.bind(this),
       [OPCODES.STORE]: this.handleStore.bind(this),
       [OPCODES.PARAM]: this.handleParam.bind(this),
+      [OPCODES.NPARAM]: this.handleNativeParam.bind(this),
       [OPCODES.ASTORE]: this.handleAStore.bind(this),
 
       [OPCODES.GOTO]: this.handleGoto.bind(this),
@@ -49,10 +55,13 @@ class VirtualMachine {
       [OPCODES.AIR]: this.handleEra.bind(this),
       [OPCODES.RETURN]: this.handleReturn.bind(this),
       [OPCODES.CALL]: this.handleCall.bind(this),
+      [OPCODES.NCALL]: this.handleNative.bind(this),
       [OPCODES.INIT]: () => {},
 
       ...Object.assign(...operators),
     };
+
+    this.nativeParams = [];
   }
 
   run() {
@@ -90,6 +99,10 @@ class VirtualMachine {
     );
   }
 
+  handleNativeParam(referenceAddress, _rightOp, _res) {
+    this.nativeParams.push(this.memory.getValue(referenceAddress));
+  }
+
   handleAStore(pointer, offset, resultAddress) {
     this.memory.setValue(
       this.memory.getValue(pointer) + offset,
@@ -122,6 +135,15 @@ class VirtualMachine {
     this.settingParams = false;
     this.callStack.push(this.ip);
     this.ip = quad;
+  }
+
+  handleNative(nativeCallName, _r, returnAddress) {
+    const func = NATIVE_FUNCTIONS[nativeCallName];
+    const res = func.execute(this.nativeParams);
+    if (returnAddress) {
+      this.memory.setValue(returnAddress, res);
+    }
+    this.nativeParams = [];
   }
 
   handleReturn() {

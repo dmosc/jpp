@@ -99,8 +99,9 @@
 "program"              { return "PROGRAM"; }
 "func"                 { return "FUNC"; }
 "var"                  { return "VAR"; }
-"read"                 { return "READ"; }
-"write"                { return "WRITE"; }
+"native"               { return "NATIVE"; }
+//"read"                 { return "READ"; }
+//"write"                { return "WRITE"; }
 "import"               { return "IMPORT"; }
 
 ("int"|"bool")         { return "INT"; }
@@ -284,7 +285,8 @@ program:
         //yy.ir.quadruplesManager.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
-    };
+    } |
+    native_functions;
 
 program_imports: /* empty */
     |
@@ -341,6 +343,22 @@ function_1:
     };
 
 function_2:
+    type_s |
+    VOID;
+
+native_functions:
+    native_function |
+    native_function native_functions;
+
+native_function:
+    NATIVE native_function_1 @push_scope params @close_function @pop_scope SEMICOLON;
+
+native_function_1:
+    native_function_2 ID {
+        yy.ir.processNativeFunction($2, $1);
+    };
+
+native_function_2:
     type_s |
     VOID;
 
@@ -465,8 +483,11 @@ function_call_2: /* empty */
 statement:
     vars |
     assign SEMICOLON |
+    /*
+    handle this as native function calls
     read |
     write |
+    */
     condition |
     while_loop |
     for_loop |

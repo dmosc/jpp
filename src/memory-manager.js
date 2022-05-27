@@ -57,7 +57,7 @@ class MemoryManager {
       MEMORY_TYPES.STACK,
     ];
     this.eraTypes = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
-    this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING];
+    this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING, TYPES.OBJECT];
     this.scopeLookup = this.getLookupTable(this.scopeTypes);
     this.typeLookup = this.getLookupTable(this.dataTypes);
     this.segments = this.scopeTypes.map((_, scopeIndex) => {
@@ -145,8 +145,14 @@ class MemoryManager {
     return address & MEMORY_FLAGS.ADDRESS_REFERENCE;
   }
 
+  getBaseAddress(memoryType, dataType) {
+    return this.segments[this.scopeLookup[memoryType]][
+      this.typeLookup[dataType]
+    ].start;
+  }
+
   getAddressDebug(address) {
-    if (!isNaN(address)) {
+    if (!isNaN(address) && address !== null) {
       return `${this.getScope(address)}.${this.getType(
         address
       )}.${this.getAddress(address)}`;

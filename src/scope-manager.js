@@ -1,4 +1,9 @@
-const { TYPES, MEMORY_TYPES, TTO_CUBE } = require('./constants');
+const {
+  TYPES,
+  MEMORY_TYPES,
+  TTO_CUBE,
+  NATIVE_FUNCTIONS,
+} = require('./constants');
 const CurrentFunction = require('./current-function');
 const Scope = require('./scope');
 
