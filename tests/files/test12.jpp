@@ -1,0 +1,30 @@
+import("libs/io.jpp")
+
+var int cache[50];
+
+func int fib(int n) {
+    if (n <= 1) {
+        return n;
+    }
+    
+    if (cache[n] > 0) { 
+        return cache[n];
+    }
+
+    var int res;
+    res = fib(n - 1) + fib(n - 2);
+    cache[n] = res;
+    return res;
+}
+
+program FibonacciOptimized {
+    var int i;
+    
+    for (i = 0; i < 50; i = i + 1) {
+        cache[i] = 0;
+    }
+
+    for (i = 1; i < 50; i = i + 1) {
+        write("fib " + i + ": " + fib(i));
+    }
+}

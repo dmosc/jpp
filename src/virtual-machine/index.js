@@ -84,7 +84,9 @@ class VirtualMachine {
   handleALoad(pointer, offset, resultAddress) {
     this.memory.setValue(
       resultAddress,
-      this.memory.getValue(this.memory.getValue(pointer) + offset)
+      this.memory.getValue(
+        this.memory.getValue(pointer) + this.memory.getValue(offset)
+      )
     );
   }
 
@@ -105,7 +107,7 @@ class VirtualMachine {
 
   handleAStore(pointer, offset, resultAddress) {
     this.memory.setValue(
-      this.memory.getValue(pointer) + offset,
+      this.memory.getValue(pointer) + this.memory.getValue(offset),
       this.memory.getValue(resultAddress)
     );
   }
