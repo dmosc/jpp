@@ -4,11 +4,6 @@ import(
     "libs/math.jpp"
 )
 
-//
-Original donut code
-https://www.a1k0n.net/2006/09/15/obfuscated-c-donut.html
-//
-
 var string chars[12];
 
 func void init_chars() {
