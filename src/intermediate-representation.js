@@ -204,6 +204,10 @@ class IntermediateRepresentation {
     this.getQuadruplesManager().setQuadrupleValue(from, 3, to);
   }
 
+  popDelimitedJumps() {
+    this.jumpsManager.popAllJumps(this);
+  }
+
   insertReturn() {
     const quadruplesManager = this.getQuadruplesManager();
     const scopeManager = this.getScopeManager();

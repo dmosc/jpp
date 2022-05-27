@@ -237,7 +237,7 @@ const_type:
 };
 
 @pop_all_jumps: {
-    yy.ir.jumpsManager.popAllJumps();
+    yy.ir.popDelimitedJumps();
 };
 
 @push_scope: {
@@ -439,7 +439,7 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @link_jump_down;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |
