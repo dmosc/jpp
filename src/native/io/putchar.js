@@ -1,9 +1,9 @@
 const NativeFunction = require('../native-function');
 
-class WriteFunction extends NativeFunction {
-  execute(params) {
-    console.log(params.join(''));
+class PutCharFunction extends NativeFunction {
+  execute([c]) {
+    process.stdout.write(c);
   }
 }
 
-module.exports = WriteFunction;
+module.exports = PutCharFunction;

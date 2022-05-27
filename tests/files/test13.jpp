@@ -1,0 +1,94 @@
+import(
+    "libs/io.jpp",
+    "libs/string.jpp",
+    "libs/math.jpp"
+)
+
+//
+Original donut code
+https://www.a1k0n.net/2006/09/15/obfuscated-c-donut.html
+//
+
+var string chars[12];
+
+func void init_chars() {
+    chars[0] = ".";
+    chars[1] = ",";
+    chars[2] = "-";
+    chars[3] = "~";
+    chars[4] = ":";
+    chars[5] = ";";
+    chars[6] = "=";
+    chars[7] = "!";
+    chars[8] = "*";
+    chars[9] = "#";
+    chars[10] = "$";
+    chars[11] = "@";
+}
+
+program Torus {
+    init_chars();
+    var int k;
+    var float A;
+    A = 0;
+    var float B;
+    B = 0;
+    var float i;
+    var float j;
+    var float z[1760];
+    var string b[1760];
+
+    clear_console();
+    
+    while (true) {
+        for (i = 0; i < 1760; i = i + 1) {
+            b[i] = " ";
+            z[i] = 0;
+        }
+    
+        for (j = 0; 6.28 > j; j = j + 0.07) {
+            for (i = 0; 6.28 > i; i = i + 0.02) {
+                var float c, d, e, f, g, h, D, l, m, n, t;
+                c = sin(i);
+                d = cos(j);
+                e = sin(A);
+                f = sin(j);
+                g = cos(A);
+                h = d + 2;
+                D = 1 / (c * h * e + f * g + 5);
+                l = cos(i);
+                m = cos(B);
+                n = sin(B);
+                t = c * h * g - f * e;
+        
+                var int x, y, o, N;
+                x = f2i(40 + 30 * D * (l * h * m - t * n));
+                y = f2i(12 + 15 * D * (l * h * n + t * m));
+                o = f2i(x + 80 * y);
+                N = f2i(8 * ((f * e - c * d * g) * m - c * d * e - f * g - l * d * n));
+        
+                if (22 > y && y > 0 && x > 0 && 80 > x && D > z[o]) {
+                    z[o] = D;
+                    if (N > 0) {
+                        b[o] = chars[N];
+                    } else {
+                        b[o] = chars[0];
+                    }
+                }
+            }
+        }
+    
+        cursor_home();
+        
+        for (k = 0; 1761 > k; k = k + 1) {
+            if (k % 80) {
+                putchar(b[k]);
+            } else {
+                write();
+            }
+        }
+    
+        A = A + 0.04;
+        B = B + 0.02;
+    }
+}

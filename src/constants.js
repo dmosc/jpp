@@ -7,6 +7,7 @@ const CosFunction = require('./native/math/cos');
 const SinFunction = require('./native/math/sin');
 const PowFunction = require('./native/math/pow');
 const SqrtFunction = require('./native/math/sqrt');
+const F2iFunction = require('./native/math/f2i');
 
 const TYPES = Object.freeze({
   INT: 'INT',
@@ -226,6 +227,7 @@ const NATIVE_FUNCTIONS = Object.freeze({
   sin: new SinFunction(),
   pow: new PowFunction(),
   sqrt: new SqrtFunction(),
+  f2i: new F2iFunction(),
 });
 
 module.exports = {
