@@ -97,7 +97,10 @@ class IntermediateRepresentation {
       }
     }
     if (callable.native) {
-      quadruplesManager.pushNativeCall(alias, callable.address || null);
+      quadruplesManager.pushNativeCall(
+        alias,
+        callable.address !== undefined ? callable.address : null
+      );
     } else {
       quadruplesManager.pushCall(callable.start);
     }

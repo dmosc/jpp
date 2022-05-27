@@ -1,4 +1,4 @@
-const NativeFunction = require('./native-function');
+const NativeFunction = require('../native-function');
 
 class WriteFunction extends NativeFunction {
   execute(params) {

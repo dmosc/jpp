@@ -1,0 +1,13 @@
+import("libs/io.jpp")
+
+program TEST_2 {
+    var int i;
+    
+    for (i = 0; i < 1; i = i + 1) {
+        if (1) {
+            write("True");
+        } else {
+            write("False");
+        }
+    }
+}

@@ -1,4 +1,12 @@
-const WriteFunction = require('./native/write');
+const WriteFunction = require('./native/io/write');
+const ClearConsoleFunction = require('./native/io/clear_console');
+const CursorHomeFunction = require('./native/io/cursor_home');
+const PutCharFunction = require('./native/io/putchar');
+const StrLengthFunction = require('./native/string/str_len');
+const CosFunction = require('./native/math/cos');
+const SinFunction = require('./native/math/sin');
+const PowFunction = require('./native/math/pow');
+const SqrtFunction = require('./native/math/sqrt');
 
 const TYPES = Object.freeze({
   INT: 'INT',
@@ -210,6 +218,14 @@ const MEMORY_FLAGS = Object.freeze({
 
 const NATIVE_FUNCTIONS = Object.freeze({
   write: new WriteFunction(),
+  clear_console: new ClearConsoleFunction(),
+  cursor_home: new CursorHomeFunction(),
+  putchar: new PutCharFunction(),
+  str_len: new StrLengthFunction(),
+  cos: new CosFunction(),
+  sin: new SinFunction(),
+  pow: new PowFunction(),
+  sqrt: new SqrtFunction(),
 });
 
 module.exports = {

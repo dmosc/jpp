@@ -1,0 +1,7 @@
+native float pow(float x, float y);
+
+native float sin(float x);
+
+native float cos(float x);
+
+native float sqrt(float x);

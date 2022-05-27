@@ -142,7 +142,7 @@ class VirtualMachine {
   handleNative(nativeCallName, _r, returnAddress) {
     const func = NATIVE_FUNCTIONS[nativeCallName];
     const res = func.execute(this.nativeParams);
-    if (returnAddress) {
+    if (returnAddress !== undefined) {
       this.memory.setValue(returnAddress, res);
     }
     this.nativeParams = [];
