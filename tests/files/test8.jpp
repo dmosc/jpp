@@ -3,6 +3,7 @@ func int test(int a, int b) {
 }
 
 program TEST_8 {
-    test(10, 5);
-    test(5, 10);
+    var int x, y;
+    x = test(10, 5);
+    y = test(5, 10);
 }

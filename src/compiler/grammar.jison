@@ -1,20 +1,10 @@
 %lex
 %{
-    const { join } = require("path");
     if (!yy.isReady) {
         yy.isReady = true;
-        const IntermediateRepresentation = require(join(__basedir, 'intermediate-representation.js'));
-        const ScopeManager = require(join(__basedir, 'scope-manager.js'));
-        const MemoryManager = require(join(__basedir, 'memory-manager.js'));
-        const QuadruplesManager = require(join(__basedir, 'quadruples-manager.js'));
-        const JumpsManager = require(join(__basedir, 'jumps-manager.js'));
-        const constants = require(join(__basedir, 'constants.js'));
 
-        const memoryManager = new MemoryManager();
-        const scopeManager = new ScopeManager(memoryManager);
-        const quadruplesManager = new QuadruplesManager();
-        const jumpsManager = new JumpsManager();
-        yy.ir = new IntermediateRepresentation(scopeManager, quadruplesManager, jumpsManager);
+        const { ir, constants } = yy.data;
+        yy.ir = ir;
         yy.constants = constants;
     }
 %}
@@ -45,10 +35,10 @@
 "!="                   { return "NOT_EQUALS"; }
 
 /* L2 */
-"<"                    { return "LT"; }
 "<="                   { return "LTE"; }
-">"                    { return "GT"; }
 ">="                   { return "GTE"; }
+"<"                    { return "LT"; }
+">"                    { return "GT"; }
 
 /* BOOLEAN_OP */
 /* L1 */
@@ -109,8 +99,10 @@
 "program"              { return "PROGRAM"; }
 "func"                 { return "FUNC"; }
 "var"                  { return "VAR"; }
-"read"                 { return "READ"; }
-"write"                { return "WRITE"; }
+"native"               { return "NATIVE"; }
+//"read"                 { return "READ"; }
+//"write"                { return "WRITE"; }
+"import"               { return "IMPORT"; }
 
 ("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
@@ -245,7 +237,7 @@ const_type:
 };
 
 @pop_all_jumps: {
-    yy.ir.jumpsManager.popAllJumps();
+    yy.ir.popDelimitedJumps();
 };
 
 @push_scope: {
@@ -257,9 +249,7 @@ const_type:
 };
 
 @goto_f: {
-    yy.ir.quadruplesManager.pushGoToF(
-        yy.ir.quadruplesManager.getQuadrupleValue(yy.ir.quadruplesManager.getQuadruplesSize() - 1, 3)
-    );
+    yy.ir.quadruplesManager.pushGoToF(yy.ir.operands.pop());
 };
 
 @goto: {
@@ -288,12 +278,26 @@ const_type:
 
 
 program:
-    program_1 program_init @push_scope block @pop_scope {
+    program_imports program_1 program_init @push_scope block @pop_scope {
+        yy.ir.insertExit();
         console.log(`-- Successfully compiled ${$3} with ${this._$.last_line} lines --`);
-        console.table(yy.ir.prettyQuads());
+        //console.table(yy.ir.prettyQuads());
         //yy.ir.quadruplesManager.optimizeIR();
         //console.log('Optimized code');
         //console.table(yy.ir.quads);
+    } |
+    native_functions;
+
+program_imports: /* empty */
+    |
+    IMPORT OPEN_PARENTHESIS imports CLOSE_PARENTHESIS;
+
+imports:
+    CONST_STRING {
+        yy.data.createSubParser(yy.data.currDirectory, $1.substring(1, $1.length - 1), yy.ir);
+    } |
+    CONST_STRING COMMA imports {
+        yy.data.createSubParser(yy.data.currDirectory, $1.substring(1, $1.length - 1), yy.ir);
     };
 
 program_init:
@@ -339,6 +343,22 @@ function_1:
     };
 
 function_2:
+    type_s |
+    VOID;
+
+native_functions:
+    native_function |
+    native_function native_functions;
+
+native_function:
+    NATIVE native_function_1 @push_scope params @close_function @pop_scope SEMICOLON;
+
+native_function_1:
+    native_function_2 ID {
+        yy.ir.processNativeFunction($2, $1);
+    };
+
+native_function_2:
     type_s |
     VOID;
 
@@ -401,7 +421,7 @@ destruct:
 
 assign:
     variable assignment_op_l1 expression {
-        yy.ir.processOperator($2);
+        yy.ir.processAssignment($2);
     };
 
 read:
@@ -419,7 +439,7 @@ write_1: /* empty */
     COMMA variable write_1;
 
 condition:
-    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @link_jump_down;
+    IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @pop_all_jumps;
 
 condition_1: /* empty */
     |
@@ -463,8 +483,11 @@ function_call_2: /* empty */
 statement:
     vars |
     assign SEMICOLON |
+    /*
+    handle this as native function calls
     read |
     write |
+    */
     condition |
     while_loop |
     for_loop |

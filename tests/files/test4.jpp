@@ -1,13 +1,17 @@
+import("libs/io.jpp")
+
 //
     FOR LOOP TEST
 //
 var int mat[2][10];
 
 program TEST_4 {
-    var int i, j;
+    var int i, j, l;
     for (i = 0; i < 2; i = i + 1) {
         for (j = 0; j < 10; j = j + 1) {
             mat[i][j] = i*j;
+            l = mat[i][j];
+            write("i = " + i + ", j = " + j + ", l = " + l);
         }
     }
 }

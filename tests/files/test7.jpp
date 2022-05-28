@@ -1,3 +1,5 @@
+import("libs/io.jpp")
+
 program TEST_7 {
     var int a, b;
     if (a == 1) {

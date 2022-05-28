@@ -1,8 +1,21 @@
+const WriteFunction = require('./native/io/write');
+const ClearConsoleFunction = require('./native/io/clear_console');
+const CursorHomeFunction = require('./native/io/cursor_home');
+const PutCharFunction = require('./native/io/putchar');
+const StrLengthFunction = require('./native/string/str_len');
+const CosFunction = require('./native/math/cos');
+const SinFunction = require('./native/math/sin');
+const PowFunction = require('./native/math/pow');
+const SqrtFunction = require('./native/math/sqrt');
+const F2iFunction = require('./native/math/f2i');
+
 const TYPES = Object.freeze({
   INT: 'INT',
   FLOAT: 'FLOAT',
   STRING: 'STRING',
   VOID: 'VOID',
+  ADDRESS: 'ADDRESS',
+  OBJECT: 'OBJECT',
 });
 
 const OPCODES = Object.freeze({
@@ -14,8 +27,13 @@ const OPCODES = Object.freeze({
   GOTO_F: 'GOTO_F',
   RETURN: 'RETURN',
   INIT: 'INIT',
-  ADDROFF_ADD: 'ADDROFF_ADD',
-  ADDROFF_MULTIPLY: 'ADDROFF_MULTIPLY',
+  STORE: 'STORE',
+  ASTORE: 'ASTORE',
+  ALOAD: 'ALOAD',
+  EXIT: 'EXIT',
+  PARAM: 'PARAM',
+  NCALL: 'NCALL',
+  NPARAM: 'NPARAM',
 });
 
 const OPERATORS = Object.freeze({
@@ -172,6 +190,12 @@ const TTO_CUBE = Object.freeze({
       [OPERATORS.NOT_EQUALS]: TYPES.INT,
       [OPERATORS.ASSIGN]: TYPES.STRING,
     },
+    [TYPES.INT]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+    },
+    [TYPES.FLOAT]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+    },
   },
   getType: function (typeA, typeB, operator) {
     if (this[typeA][operator]) return this[typeA][operator];
@@ -189,6 +213,23 @@ const MEMORY_TYPES = Object.freeze({
   STACK: 'STACK',
 });
 
+const MEMORY_FLAGS = Object.freeze({
+  ADDRESS_REFERENCE: 1 << 26,
+});
+
+const NATIVE_FUNCTIONS = Object.freeze({
+  write: new WriteFunction(),
+  clear_console: new ClearConsoleFunction(),
+  cursor_home: new CursorHomeFunction(),
+  putchar: new PutCharFunction(),
+  str_len: new StrLengthFunction(),
+  cos: new CosFunction(),
+  sin: new SinFunction(),
+  pow: new PowFunction(),
+  sqrt: new SqrtFunction(),
+  f2i: new F2iFunction(),
+});
+
 module.exports = {
   TYPES,
   OPCODES,
@@ -197,4 +238,6 @@ module.exports = {
   TTO_CUBE,
   OPERATOR_FUNCTIONS,
   MEMORY_TYPES,
+  MEMORY_FLAGS,
+  NATIVE_FUNCTIONS,
 };

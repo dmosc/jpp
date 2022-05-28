@@ -4,6 +4,7 @@ const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 class QuadruplesManager {
   constructor() {
     this.quadruples = [];
+    this.pushGoTo();
   }
 
   getQuadrupleValue(from, to) {
@@ -32,6 +33,14 @@ class QuadruplesManager {
     this.quadruples.push(quadruple);
   }
 
+  pushALoad(baseAddress, offset, address) {
+    this.pushQuadruple([OPCODES.ALOAD, baseAddress, offset, address]);
+  }
+
+  pushExit() {
+    this.pushQuadruple([OPCODES.EXIT, null, null, null]);
+  }
+
   pushLoad(data, address) {
     this.pushQuadruple([OPCODES.LOAD, data, null, address]);
   }
@@ -40,20 +49,28 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.AIR, null, null, null]);
   }
 
-  pushAssign(left, right, target) {
-    this.pushQuadruple([OPERATORS.ASSIGN, left, right, target]);
+  pushStore(value, address) {
+    this.pushQuadruple([OPCODES.STORE, value, null, address]);
   }
 
-  pushAddressOffsetAdd(origin, offset, target) {
-    this.pushQuadruple([OPCODES.ADDROFF_ADD, origin, offset, target]);
+  pushParam(value, address) {
+    this.pushQuadruple([OPCODES.PARAM, value, null, address]);
   }
 
-  pushAddressOffsetMultiply(origin, offset, target) {
-    this.pushQuadruple([OPCODES.ADDROFF_MULTIPLY, origin, offset, target]);
+  pushNativeParam(value, address) {
+    this.pushQuadruple([OPCODES.NPARAM, value, null, address]);
+  }
+
+  pushOperator(operator, left, right, target) {
+    this.pushQuadruple([operator, left, right, target]);
   }
 
   pushCall(to) {
     this.pushQuadruple([OPCODES.CALL, null, null, to]);
+  }
+
+  pushNativeCall(nativeCallName, returnAddress) {
+    this.pushQuadruple([OPCODES.NCALL, nativeCallName, null, returnAddress]);
   }
 
   pushReturn(value = null) {
@@ -61,6 +78,8 @@ class QuadruplesManager {
   }
 
   pushInit() {
+    // set goto main to INIT
+    this.setQuadrupleValue(0, 3, this.quadruples.length);
     this.pushQuadruple([OPCODES.INIT, null, null, null]);
   }
 

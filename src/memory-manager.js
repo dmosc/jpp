@@ -1,4 +1,5 @@
-const { MEMORY_TYPES, TYPES } = require('./constants');
+const { Stack } = require('datastructures-js');
+const { MEMORY_TYPES, TYPES, MEMORY_FLAGS } = require('./constants');
 const Memory = require('./memory');
 
 /**
@@ -31,12 +32,20 @@ const Memory = require('./memory');
  * We can access the memory scope just by shifting and masking
  * address >>> 27 & 0x7
  *
+ * The next bit represents if the address is a reference to
+ * another address
+ * 00000X00 00000000 00000000 0000000
+ * 0 = Variable Reference
+ * 1 = Address Reference
+ * We can check if it's an address reference with
+ * address >>> 26 & 0x1
+ *
  * That leaves the rest of the bits available for addresses
- * 00000XXX XXXXXXXX XXXXXXXX XXXXXXXX
- * That means we have a total of 2^27 addresses to use,
- * a total of 134,217,728 usable addresses
+ * 000000XX XXXXXXXX XXXXXXXX XXXXXXXX
+ * That means we have a total of 2^26 addresses to use,
+ * a total of 67,108,864 usable addresses
  * We can get the raw address with
- * address & 0x7FFFFFF
+ * address & 0x3FFFFFF
  */
 
 class MemoryManager {
@@ -47,7 +56,8 @@ class MemoryManager {
       MEMORY_TYPES.TEMP,
       MEMORY_TYPES.STACK,
     ];
-    this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING];
+    this.eraTypes = [MEMORY_TYPES.LOCAL, MEMORY_TYPES.TEMP];
+    this.dataTypes = [TYPES.INT, TYPES.FLOAT, TYPES.STRING, TYPES.OBJECT];
     this.scopeLookup = this.getLookupTable(this.scopeTypes);
     this.typeLookup = this.getLookupTable(this.dataTypes);
     this.segments = this.scopeTypes.map((_, scopeIndex) => {
@@ -56,6 +66,54 @@ class MemoryManager {
         return new Memory((scopeBits | typeIndex) << 27, type);
       });
     });
+
+    this.memoryStack = new Stack();
+  }
+
+  era() {
+    this.previousMemory = Object.assign(
+      ...this.eraTypes.map((type) => {
+        return { [type]: this.segments[this.scopeLookup[type]] };
+      })
+    );
+    this.memoryStack.push(this.previousMemory);
+
+    this.eraTypes.forEach((type) => {
+      const scopeIndex = this.scopeLookup[type];
+      const scopeBits = scopeIndex << 3;
+      this.segments[scopeIndex] = this.dataTypes.map((type, typeIndex) => {
+        return new Memory((scopeBits | typeIndex) << 27, type);
+      });
+    });
+  }
+
+  eraPop() {
+    const mem = this.memoryStack.pop();
+
+    this.eraTypes.forEach((type) => {
+      this.segments[this.scopeLookup[type]] = mem[type];
+    });
+
+    this.previousMemory = this.memoryStack.peek();
+  }
+
+  getValue(address) {
+    return this.segments[address >>> 30][(address >>> 27) & 0x7].getValue(
+      address & 0x3ffffff
+    );
+  }
+
+  getValueForParam(address) {
+    return this.previousMemory[this.getScope(address)][
+      (address >>> 27) & 0x7
+    ].getValue(address & 0x3ffffff);
+  }
+
+  setValue(address, value) {
+    this.segments[address >>> 30][(address >>> 27) & 0x7].setValue(
+      address & 0x3ffffff,
+      value
+    );
   }
 
   getLookupTable(list) {
@@ -80,11 +138,21 @@ class MemoryManager {
   }
 
   getAddress(address) {
-    return address & 0x7ffffff;
+    return address & 0x3ffffff;
+  }
+
+  isAddressReference(address) {
+    return address & MEMORY_FLAGS.ADDRESS_REFERENCE;
+  }
+
+  getBaseAddress(memoryType, dataType) {
+    return this.segments[this.scopeLookup[memoryType]][
+      this.typeLookup[dataType]
+    ].start;
   }
 
   getAddressDebug(address) {
-    if (!isNaN(address)) {
+    if (!isNaN(address) && address !== null) {
       return `${this.getScope(address)}.${this.getType(
         address
       )}.${this.getAddress(address)}`;

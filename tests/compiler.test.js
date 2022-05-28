@@ -1,8 +1,6 @@
-const { parser } = require('../src/compiler');
+const { createNewParser } = require('../src/compiler');
 const { readFileSync } = require('fs');
 const { join } = require('path');
-
-global.__basedir = join(__dirname, '..', 'src');
 
 const testMap = [
   {
@@ -49,13 +47,11 @@ const testMap = [
 ];
 
 test.each(testMap)('Compile $name ($description)', ({ name, error }) => {
-  const fileContent = readFileSync(
-    join(__dirname, 'files', `${name}.jpp`),
-    'utf-8'
-  );
+  const filePath = join(__dirname, 'files', `${name}.jpp`);
+  const fileContent = readFileSync(filePath, 'utf-8');
 
   const parse = () => {
-    parser.parse(fileContent);
+    createNewParser(filePath, fileContent);
   };
   if (error) {
     expect(parse).toThrowError();

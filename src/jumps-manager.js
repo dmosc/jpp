@@ -1,4 +1,4 @@
-const {Stack} = require("datastructures-js");
+const { Stack } = require('datastructures-js');
 
 class JumpsManager {
   constructor() {
@@ -24,8 +24,10 @@ class JumpsManager {
     return this.getJumps().pop();
   }
 
-  popAllJumps(delimiter = false) {
-    while (!this.isEmpty() && this.peek() !== -1) this.popJump(0);
+  popAllJumps(ir, delimiter = true) {
+    while (!this.isEmpty() && this.peek() !== -1) {
+      ir.linkJump(this.popJump(0), ir.quadruplesManager.getQuadruplesSize());
+    }
     if (this.popJump(0) !== -1 && delimiter) {
       throw new Error('Expecting delimiter!');
     }
