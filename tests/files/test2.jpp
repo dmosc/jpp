@@ -6,7 +6,7 @@ program TEST_2 {
     a = 10;
     b = 30;
     c[1 * 5] = 1;
-    write(c[2 / 1]);
+    write(c[1 * 5]);
     if (a > b) {
         write("A is greater than B");
     } elif (b > a) {

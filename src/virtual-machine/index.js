@@ -13,11 +13,10 @@ class VirtualMachine {
     this.ip = 0; // instruction pointer
     this.memory = new MemoryManager();
     this.done = false;
-    this.settingParams = false;
     this.callStack = new Stack();
 
     const operators = Object.entries(OPERATOR_FUNCTIONS).map(([op, opFunc]) => {
-      if (OPERANDS[op] == 2) {
+      if (OPERANDS[op] === 2) {
         return {
           [op]: (lop, rop, resOp) => {
             this.memory.setValue(
@@ -128,11 +127,9 @@ class VirtualMachine {
 
   handleEra() {
     this.memory.era(this.ip);
-    this.settingParams = true;
   }
 
   handleCall(_l, _r, quad) {
-    this.settingParams = false;
     this.callStack.push(this.ip);
     this.ip = quad - 1;
   }
