@@ -193,7 +193,10 @@ class IntermediateRepresentation {
 
   closeFunction() {
     const scopeManager = this.getScopeManager();
-    if (scopeManager.getCurrentFunction().isVoid()) {
+    if (
+      scopeManager.getCurrentFunction().isVoid() &&
+      !scopeManager.getCurrentFunction().target.native
+    ) {
       this.getQuadruplesManager().pushReturn();
     }
     scopeManager.switchCurrentFunction(); // Unset current function.
