@@ -1,13 +1,10 @@
-import("libs/io.jpp")
+import("libs/io.jpp", "libs/string.jpp")
 
-program TEST_2 {
-    var int i;
-    
-    for (i = 0; i < 1; i = i + 1) {
-        if (1) {
-            write("True");
-        } else {
-            write("False");
-        }
+program TEST_14 {
+    var int i, j;
+    i = str_to_int(read("Some value: "));
+    write(i);
+    for (j = 0; j < i; j = j + 1) {
+        write(j);
     }
 }

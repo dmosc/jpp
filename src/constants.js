@@ -8,6 +8,9 @@ const SinFunction = require('./native/math/sin');
 const PowFunction = require('./native/math/pow');
 const SqrtFunction = require('./native/math/sqrt');
 const F2iFunction = require('./native/math/f2i');
+const ReadFunction = require('./native/io/read');
+const StrToIntFunction = require('./native/string/str_to_int');
+const StrToFloatFunction = require('./native/string/str_to_float');
 
 const TYPES = Object.freeze({
   INT: 'INT',
@@ -198,11 +201,14 @@ const TTO_CUBE = Object.freeze({
     },
   },
   getType: function (typeA, typeB, operator) {
-    if (this[typeA][operator]) return this[typeA][operator];
-    if (this[typeA][typeB][operator]) return this[typeA][typeB][operator];
-    throw new Error(
-      `Invalid operands {${typeA}, ${typeB}} to operator "${operator}"`
-    );
+    try {
+      if (this[typeA][operator]) return this[typeA][operator];
+      if (this[typeA][typeB][operator]) return this[typeA][typeB][operator];
+    } catch {
+      throw new Error(
+        `Invalid operands {${typeA}, ${typeB}} to operator "${operator}"`
+      );
+    }
   },
 });
 
@@ -219,6 +225,9 @@ const MEMORY_FLAGS = Object.freeze({
 
 const NATIVE_FUNCTIONS = Object.freeze({
   write: new WriteFunction(),
+  read: new ReadFunction(),
+  str_to_int: new StrToIntFunction(),
+  str_to_float: new StrToFloatFunction(),
   clear_console: new ClearConsoleFunction(),
   cursor_home: new CursorHomeFunction(),
   putchar: new PutCharFunction(),

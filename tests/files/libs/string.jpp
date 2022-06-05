@@ -1,1 +1,5 @@
 native int str_len(string str);
+
+native int str_to_int(string str);
+
+native float str_to_float(string str);

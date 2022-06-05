@@ -1,0 +1,10 @@
+import("libs/io.jpp", "libs/string.jpp")
+
+program TEST_15 {
+    var int a;
+    var float b;
+    a = str_to_int(read("Some value: "));
+    b = str_to_float(read("Some value: "));
+    write(a);
+    write(b);
+}

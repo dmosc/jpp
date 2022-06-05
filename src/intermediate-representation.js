@@ -5,6 +5,7 @@ const {
   MEMORY_TYPES,
   OPCODES,
   MEMORY_FLAGS,
+  TTO_CUBE,
 } = require('./constants');
 const { Stack } = require('datastructures-js');
 
@@ -128,12 +129,17 @@ class IntermediateRepresentation {
 
   processAssignment(operator) {
     const quadruplesManager = this.getQuadruplesManager();
+    const scopeManager = this.getScopeManager();
     const [rightOperand, leftOperand] = [
       this.popAddress(),
       this.operands.pop(),
     ];
     let address = leftOperand;
-
+    TTO_CUBE.getType(
+      scopeManager.addressDetails(leftOperand).type,
+      scopeManager.addressDetails(rightOperand).type,
+      operator
+    );
     if (address & MEMORY_FLAGS.ADDRESS_REFERENCE) {
       quadruplesManager.pushQuadruple([
         OPCODES.ASTORE,
