@@ -4,6 +4,7 @@ const {
   OPERATOR_FUNCTIONS,
   OPERANDS,
   NATIVE_FUNCTIONS,
+  OPERATORS,
 } = require('../constants');
 const MemoryManager = require('../memory-manager');
 
@@ -56,8 +57,27 @@ class VirtualMachine {
       [OPCODES.CALL]: this.handleCall.bind(this),
       [OPCODES.NCALL]: this.handleNative.bind(this),
       [OPCODES.INIT]: () => {},
-
       ...Object.assign(...operators),
+      [OPCODES.IDIVIDE]: (lop, rop, resOp) => {
+        this.memory.setValue(
+          resOp,
+          Math.trunc(
+            OPERATOR_FUNCTIONS[OPERATORS.DIVISION](
+              this.memory.getValue(lop),
+              this.memory.getValue(rop)
+            )
+          )
+        );
+      },
+      [OPCODES.FDIVIDE]: (lop, rop, resOp) => {
+        this.memory.setValue(
+          resOp,
+          OPERATOR_FUNCTIONS[OPERATORS.DIVISION](
+            this.memory.getValue(lop),
+            this.memory.getValue(rop)
+          )
+        );
+      },
     };
 
     this.nativeParams = [];

@@ -162,6 +162,11 @@ class IntermediateRepresentation {
     ];
 
     const type = scopeManager.getTTO(leftOperand, rightOperand, operator);
+
+    if (operator === OPERATORS.DIVISION) {
+      operator = type === TYPES.FLOAT ? OPCODES.FDIVIDE : OPCODES.IDIVIDE;
+    }
+
     let address = scopeManager.malloc(MEMORY_TYPES.TEMP, type);
     quadruplesManager.pushQuadruple([
       operator,
@@ -170,7 +175,6 @@ class IntermediateRepresentation {
       address,
     ]);
     this.operands.push(address);
-    return;
   }
 
   processArgument(alias, type, dimensions) {

@@ -1,0 +1,11 @@
+import("libs/io.jpp")
+
+program Divisions {
+    var int a, b;
+    var float c;
+    a = 5;
+    b = 2;
+    c = b;
+    write (a / b);
+    write (a / c);
+}

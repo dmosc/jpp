@@ -37,6 +37,8 @@ const OPCODES = Object.freeze({
   PARAM: 'PARAM',
   NCALL: 'NCALL',
   NPARAM: 'NPARAM',
+  IDIVIDE: 'IDIVIDE',
+  FDIVIDE: 'FDIVIDE',
 });
 
 const OPERATORS = Object.freeze({
@@ -80,10 +82,7 @@ const OPERATOR_FUNCTIONS = Object.freeze({
   [OPERATORS.PLUS]: (op1, op2) => op1 + op2,
   [OPERATORS.MINUS]: (op1, op2) => op1 - op2,
   [OPERATORS.MULTIPLICATION]: (op1, op2) => op1 * op2,
-  [OPERATORS.DIVISION]: (op1, op2) =>
-    Number.isInteger(op1) && Number.isInteger(op2)
-      ? parseInt(op1 / op2)
-      : op1 / op2,
+  [OPERATORS.DIVISION]: (op1, op2) => op1 / op2,
   [OPERATORS.MODULO]: (op1, op2) => op1 % op2,
   [OPERATORS.BOOLEAN_NOT]: (_op1, op2) => !op2,
   [OPERATORS.BITWISE_NOT]: (_op1, op2) => ~op2,
