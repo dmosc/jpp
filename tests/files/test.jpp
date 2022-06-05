@@ -1,0 +1,32 @@
+import("libs/io.jpp", "libs/string.jpp")
+
+program BinarySearch {
+    var int i, k, left, right, middle, arr[10];
+    var bool found;
+
+    i = 0;
+    while (i < 10) {
+        arr[i] = str_to_int(read("Value: "));
+        i = i + 1;
+    }
+
+    k = str_to_int(read("Search for value: "));
+    left = 0;
+    right = 10;
+    found = false;
+    while (left < right && !found) {
+        middle = (left + right) / 2;
+        write(middle);
+        if (arr[middle] == k) {
+            write(k + " at index " + middle);
+            found = true;
+        } elif (arr[middle] < k) {
+            left = middle + 1;
+        } else {
+            right = middle - 1;
+        }
+    }
+    if (!found) {
+        write(k + " not in array");
+    }
+}

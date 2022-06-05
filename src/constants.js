@@ -80,7 +80,10 @@ const OPERATOR_FUNCTIONS = Object.freeze({
   [OPERATORS.PLUS]: (op1, op2) => op1 + op2,
   [OPERATORS.MINUS]: (op1, op2) => op1 - op2,
   [OPERATORS.MULTIPLICATION]: (op1, op2) => op1 * op2,
-  [OPERATORS.DIVISION]: (op1, op2) => op1 / op2,
+  [OPERATORS.DIVISION]: (op1, op2) =>
+    Number.isInteger(op1) && Number.isInteger(op2)
+      ? parseInt(op1 / op2)
+      : op1 / op2,
   [OPERATORS.MODULO]: (op1, op2) => op1 % op2,
   [OPERATORS.BOOLEAN_NOT]: (_op1, op2) => !op2,
   [OPERATORS.BITWISE_NOT]: (_op1, op2) => ~op2,
@@ -148,6 +151,9 @@ const TTO_CUBE = Object.freeze({
       [OPERATORS.LT]: TYPES.INT,
       [OPERATORS.LTE]: TYPES.INT,
     },
+    [TYPES.STRING]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
+    },
     [OPERATORS.BITWISE_NOT]: TYPES.INT,
     [OPERATORS.BOOLEAN_NOT]: TYPES.INT,
   },
@@ -182,6 +188,9 @@ const TTO_CUBE = Object.freeze({
       [OPERATORS.LT]: TYPES.INT,
       [OPERATORS.LTE]: TYPES.INT,
       [OPERATORS.ASSIGN]: TYPES.FLOAT,
+    },
+    [TYPES.STRING]: {
+      [OPERATORS.PLUS]: TYPES.STRING,
     },
     [OPERATORS.BITWISE_NOT]: TYPES.FLOAT,
     [OPERATORS.BOOLEAN_NOT]: TYPES.INT,

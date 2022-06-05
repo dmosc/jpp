@@ -3,8 +3,8 @@ import("libs/io.jpp", "libs/string.jpp")
 program TEST_15 {
     var int a;
     var float b;
-    a = str_to_int(read("Some value: "));
-    b = str_to_float(read("Some value: "));
+    a = str_to_int(read("Value for a: "));
+    b = str_to_float(read("Value for b: "));
     write(a);
     write(b);
 }
