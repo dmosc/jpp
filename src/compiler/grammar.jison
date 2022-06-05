@@ -100,8 +100,6 @@
 "func"                 { return "FUNC"; }
 "var"                  { return "VAR"; }
 "native"               { return "NATIVE"; }
-//"read"                 { return "READ"; }
-//"write"                { return "WRITE"; }
 "import"               { return "IMPORT"; }
 
 ("int"|"bool")         { return "INT"; }
@@ -419,20 +417,6 @@ assign:
     variable assignment_op_l1 expression {
         yy.ir.processAssignment($2);
     };
-
-read:
-    READ OPEN_PARENTHESIS variable read_1 CLOSE_PARENTHESIS SEMICOLON;
-
-read_1: /* empty */
-    |
-    COMMA variable read_1;
-
-write:
-    WRITE OPEN_PARENTHESIS expression write_1 CLOSE_PARENTHESIS SEMICOLON;
-
-write_1: /* empty */
-    |
-    COMMA variable write_1;
 
 condition:
     IF OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_delimiter @push_jump @goto_f @push_scope block @pop_scope @push_jump @goto @link_jump_down_n1 condition_1 @pop_all_jumps;

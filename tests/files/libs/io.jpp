@@ -1,5 +1,7 @@
 native void write(string output);
 
+native string read(string message);
+
 native void clear_console();
 
 native void cursor_home();

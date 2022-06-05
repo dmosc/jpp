@@ -16,7 +16,8 @@
     "chalk": "4.1.2",
     "commander": "^9.2.0",
     "datastructures-js": "^10.2.0",
-    "jison": "^0.4.18"
+    "jison": "^0.4.18",
+    "prompt-sync": "^4.2.0"
   },
   "lint-staged": {
     "*.js": "prettier --write"
