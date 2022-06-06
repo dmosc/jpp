@@ -406,7 +406,7 @@ vars_2: /* empty */
 class:
     CLASS class_name class_1 class_block @pop_scope;
 
-class_name: 
+class_name:
     ID  {
         yy.ir.processClass($1);
     };
@@ -433,7 +433,7 @@ destruct:
 
 assign:
     alias_l1 variable assignment_op_l1 expression {
-        yy.ir.processAssignment($2);
+        yy.ir.processAssignment($3);
     };
 
 condition:

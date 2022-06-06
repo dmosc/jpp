@@ -39,6 +39,7 @@ const OPCODES = Object.freeze({
   NPARAM: 'NPARAM',
   IDIVIDE: 'IDIVIDE',
   FDIVIDE: 'FDIVIDE',
+  F2I: 'F2I',
   MALLOC: 'MALLOC',
   DEREF: 'DEREF',
 });
@@ -151,6 +152,7 @@ const TTO_CUBE = Object.freeze({
       [OPERATORS.GTE]: TYPES.INT,
       [OPERATORS.LT]: TYPES.INT,
       [OPERATORS.LTE]: TYPES.INT,
+      [OPERATORS.ASSIGN]: TYPES.INT,
     },
     [TYPES.STRING]: {
       [OPERATORS.PLUS]: TYPES.STRING,

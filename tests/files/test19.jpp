@@ -1,10 +1,11 @@
 import ("libs/io.jpp")
 
-func void test(int a, string b) {
-    write("A: " + a);
-    write("B: " + b);
-}
-
 program Test {
-    test(1, "hello");
+    var int a, b;
+    var float c;
+    a = 10;
+    b = 10.5;
+    c = 2.5;
+    write(c + b);
+    write(b);
 }

@@ -80,6 +80,9 @@ class VirtualMachine {
           )
         );
       },
+      [OPCODES.F2I]: (lop, _r, resOp) => {
+        this.memory.setValue(resOp, Math.trunc(this.memory.getValue(lop)));
+      },
     };
 
     this.nativeParams = [];

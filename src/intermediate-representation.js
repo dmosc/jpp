@@ -248,16 +248,12 @@ class IntermediateRepresentation {
       this.operands.pop(),
     ];
     let address = leftOperand;
-    TTO_CUBE.getType(
-      scopeManager.addressDetails(leftOperand).type,
-      scopeManager.addressDetails(rightOperand).type,
-      operator
-    );
+    const leftOperandDetails = scopeManager.addressDetails(leftOperand);
+    const rightOperandDetails = scopeManager.addressDetails(rightOperand);
 
-    // dont use ASTORE for objects
     if (
       address & MEMORY_FLAGS.ADDRESS_REFERENCE &&
-      this.getScopeManager().addressDetails(leftOperand).type !== TYPES.OBJECT
+      leftOperandDetails.type !== TYPES.OBJECT
     ) {
       quadruplesManager.pushQuadruple([
         OPCODES.ASTORE,
@@ -266,8 +262,30 @@ class IntermediateRepresentation {
         rightOperand,
       ]);
     } else {
-      operator = OPCODES.STORE;
-      quadruplesManager.pushQuadruple([operator, rightOperand, null, address]);
+      let castAddress = rightOperand;
+      const resultType = TTO_CUBE.getType(
+        leftOperandDetails.type,
+        rightOperandDetails.type,
+        operator
+      );
+      if (
+        resultType === TYPES.INT &&
+        rightOperandDetails.type === TYPES.FLOAT
+      ) {
+        castAddress = scopeManager.malloc(MEMORY_TYPES.TEMP, resultType);
+        quadruplesManager.pushQuadruple([
+          OPCODES.F2I,
+          rightOperand,
+          null,
+          castAddress,
+        ]);
+      }
+      quadruplesManager.pushQuadruple([
+        OPCODES.STORE,
+        castAddress,
+        null,
+        address,
+      ]);
     }
   }
 
@@ -456,7 +474,8 @@ class IntermediateRepresentation {
       if (
         op === OPCODES.STORE ||
         op === OPCODES.PARAM ||
-        op === OPCODES.NPARAM
+        op === OPCODES.NPARAM ||
+        op === OPCODES.F2I
       ) {
         return [
           op,
