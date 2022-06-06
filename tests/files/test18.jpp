@@ -6,6 +6,10 @@ class Person {
     var Person friend;
 }
 
+func void setName(Person person) {
+    person.name = "test";
+}
+
 program TEST_3 {
     var Person pato;
     pato = new Person();
@@ -21,4 +25,10 @@ program TEST_3 {
 
     write(pato.friend.name);
     write(pato.friend.age);
+
+    setName(pato);
+    setName(pato.friend);
+
+    write(pato.name);
+    write(pato.friend.name);
 }

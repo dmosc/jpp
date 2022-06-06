@@ -289,8 +289,14 @@ class IntermediateRepresentation {
   }
 
   processArgument(alias, type, dimensions) {
-    console.log(alias, type);
-    this.getScopeManager().addArgumentAlias(alias, type, dimensions);
+    if (type === TYPES.OBJECT) {
+      this.getScopeManager().addObjectArgumentAlias(
+        this.currentObjectType,
+        alias
+      );
+    } else {
+      this.getScopeManager().addArgumentAlias(alias, type, dimensions);
+    }
   }
 
   processVariable(alias, type, dimensions) {
