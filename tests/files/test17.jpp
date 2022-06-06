@@ -20,5 +20,6 @@ class Point {
 program TEST_3 {
     var Point p1;
     p1 = new Point(1, 3);
-    write(p1.getX());
+    write("x: " + p1.getX());
+    write("y: " + p1.getY());
 }
