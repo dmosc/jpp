@@ -96,6 +96,13 @@ class MemoryManager {
     this.previousMemory = this.memoryStack.peek();
   }
 
+  malloc(size) {
+    return this.getMemorySegment(
+      MEMORY_TYPES.STACK,
+      TYPES.OBJECT
+    ).allocateAddress(size, MEMORY_FLAGS.ADDRESS_REFERENCE);
+  }
+
   getValue(address) {
     return this.segments[address >>> 30][(address >>> 27) & 0x7].getValue(
       address & 0x3ffffff

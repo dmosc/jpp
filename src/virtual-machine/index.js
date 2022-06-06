@@ -47,6 +47,7 @@ class VirtualMachine {
       [OPCODES.PARAM]: this.handleParam.bind(this),
       [OPCODES.NPARAM]: this.handleNativeParam.bind(this),
       [OPCODES.ASTORE]: this.handleAStore.bind(this),
+      [OPCODES.MALLOC]: this.handleMalloc.bind(this),
 
       [OPCODES.GOTO]: this.handleGoto.bind(this),
       [OPCODES.GOTO_T]: this.handleGotoT.bind(this),
@@ -56,6 +57,7 @@ class VirtualMachine {
       [OPCODES.RETURN]: this.handleReturn.bind(this),
       [OPCODES.CALL]: this.handleCall.bind(this),
       [OPCODES.NCALL]: this.handleNative.bind(this),
+      [OPCODES.DEREF]: this.handleDeref.bind(this),
       [OPCODES.INIT]: () => {},
       ...Object.assign(...operators),
       [OPCODES.IDIVIDE]: (lop, rop, resOp) => {
@@ -111,6 +113,10 @@ class VirtualMachine {
     this.memory.setValue(resultAddress, this.memory.getValue(referenceAddress));
   }
 
+  handleDeref(pointer, _a, resultAddress) {
+    this.memory.setValue(resultAddress, this.memory.getValue(pointer));
+  }
+
   handleParam(referenceAddress, _rightOp, resultAddress) {
     this.memory.setValue(
       resultAddress,
@@ -137,6 +143,10 @@ class VirtualMachine {
     if (this.memory.getValue(address)) {
       this.ip = quad - 1;
     }
+  }
+
+  handleMalloc(size, _rop, address) {
+    this.memory.setValue(address, this.memory.malloc(size));
   }
 
   handleGotoF(address, _rop, quad) {

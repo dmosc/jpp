@@ -1,0 +1,24 @@
+import("libs/io.jpp")
+
+class Person {
+    var string name;
+    var int age;
+    var Person friend;
+}
+
+program TEST_3 {
+    var Person pato;
+    pato = new Person();
+    pato.name = "Pato";
+    pato.age = 22;
+    
+    pato.friend = new Person();
+    pato.friend.name = "Oscar";
+    pato.friend.age = 22;
+
+    write(pato.name);
+    write(pato.age);
+
+    write(pato.friend.name);
+    write(pato.friend.age);
+}

@@ -101,7 +101,8 @@
 "var"                  { return "VAR"; }
 "native"               { return "NATIVE"; }
 "import"               { return "IMPORT"; }
-
+"this"                 { return "THIS"; }
+"new"                  { return "NEW"; }
 ("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
 "string"               { return "STRING"; }
@@ -191,7 +192,10 @@ type_s:
     };
 
 type_c:
-    ID;
+    ID {
+        yy.ir.currentType = yy.constants.TYPES.OBJECT;
+        yy.ir.currentObjectType = $1;
+    };
 
 /* CONST */
 const_type:
@@ -274,6 +278,9 @@ const_type:
     yy.ir.closeFunction();
 };
 
+@process_constructor: {
+    yy.ir.processFunction("construct", 'VOID');
+};
 
 program:
     program_imports program_1 program_init @push_scope block @pop_scope {
@@ -319,6 +326,9 @@ params:
 params_1: /* empty */
     |
     type_s ID params_2 {
+        yy.ir.processArgument($2, yy.ir.currentType, []);
+    } |
+    type_c ID params_2 {
         yy.ir.processArgument($2, yy.ir.currentType, []);
     };
 
@@ -368,19 +378,21 @@ variable_declare:
     };
 
 variable:
-    ID {
-        yy.ir.processVariableOperand($1, []);
+    /* EMPTY */ {
+        yy.ir.processVariableOperand([]);
     } |
-    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
-        yy.ir.processVariableOperand($1, [$3]);
+    OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
+        yy.ir.processVariableOperand([$3]);
     } |
-    ID OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
-        yy.ir.processVariableOperand($1, [$3, $6]);
+    OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET expression CLOSE_SQUARE_BRACKET {
+        yy.ir.processVariableOperand([$3, $6]);
     };
 
 vars:
     VAR type_s variable_declare vars_1 SEMICOLON |
-    VAR type_c ID vars_2 SEMICOLON;
+    VAR type_c ID vars_2 SEMICOLON {
+        yy.ir.processClassVariable($3);
+    };
 
 vars_1: /* empty */
     |
@@ -391,7 +403,12 @@ vars_2: /* empty */
     COMMA ID vars_2;
 
 class:
-    CLASS ID class_1 class_block;
+    CLASS class_name class_1 class_block @pop_scope;
+
+class_name: 
+    ID  {
+        yy.ir.processClass($1);
+    };
 
 class_1: /* empty */
     |
@@ -408,13 +425,13 @@ class_block_1: /* empty */
     destruct class_block_1;
 
 construct:
-    CONSTRUCT params block;
+    CONSTRUCT @process_constructor @push_scope params block @close_function @pop_scope;
 
 destruct:
     DESTRUCT OPEN_PARENTHESIS CLOSE_PARENTHESIS block;
 
 assign:
-    variable assignment_op_l1 expression {
+    alias_l1 variable assignment_op_l1 expression {
         yy.ir.processAssignment($2);
     };
 
@@ -445,33 +462,59 @@ while_loop:
     WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @link_jump_down @link_jump_up;
 
 function_call:
-    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
-        yy.ir.processFunctionCallOperand($1);
+    OPEN_PARENTHESIS CLOSE_PARENTHESIS {
+        yy.ir.processFunctionCallOperand();
     } |
-    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
-        yy.ir.processFunctionCallOperand($1);
+    OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
+        yy.ir.processFunctionCallOperand();
     };
 
-function_call_1: /* empty */
-    |
-    DOT ID;
+
+alias_l1: 
+    ID {
+        yy.ir.processId($1);
+    } |
+    alias_l2 ID {
+        yy.ir.processId($2);
+    };
+
+alias_l2: 
+    alias_l2 ID DOT {
+        yy.ir.processContext($2);
+    } |
+    ID DOT {
+        yy.ir.processContext($1);
+    } |
+    alias_l3;
+
+alias_l3:
+    THIS DOT {
+        yy.ir.processThisContext();
+    };
 
 function_call_2: /* empty */
     |
     COMMA expression function_call_2;
 
+object_creation:
+    NEW alias_l1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
+        yy.ir.processObjectCreationOperand();
+    } |
+    NEW alias_l1 OPEN_PARENTHESIS expression object_creation_param CLOSE_PARENTHESIS {
+        yy.ir.processObjectCreationOperand();
+    };
+
+object_creation_param: /* empty */
+    |
+    COMMA expression object_creation_param;
+
 statement:
     vars |
     assign SEMICOLON |
-    /*
-    handle this as native function calls
-    read |
-    write |
-    */
     condition |
     while_loop |
     for_loop |
-    function_call SEMICOLON |
+    alias_l1 function_call SEMICOLON |
     RETURN expression SEMICOLON {
         yy.ir.insertReturn();
     } |
@@ -550,6 +593,7 @@ expression_l10:
 
 expression_l11:
     OPEN_PARENTHESIS expression CLOSE_PARENTHESIS |
-    function_call |
+    object_creation |
     const_type |
-    variable;
+    alias_l1 function_call |
+    alias_l1 variable;

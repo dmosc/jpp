@@ -37,6 +37,10 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.ALOAD, baseAddress, offset, address]);
   }
 
+  pushDeref(pointer, address) {
+    this.pushQuadruple([OPCODES.DEREF, pointer, null, address]);
+  }
+
   pushExit() {
     this.pushQuadruple([OPCODES.EXIT, null, null, null]);
   }
@@ -51,6 +55,10 @@ class QuadruplesManager {
 
   pushStore(value, address) {
     this.pushQuadruple([OPCODES.STORE, value, null, address]);
+  }
+
+  pushMalloc(size, address) {
+    this.pushQuadruple([OPCODES.MALLOC, size, null, address]);
   }
 
   pushParam(value, address) {

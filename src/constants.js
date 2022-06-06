@@ -39,6 +39,8 @@ const OPCODES = Object.freeze({
   NPARAM: 'NPARAM',
   IDIVIDE: 'IDIVIDE',
   FDIVIDE: 'FDIVIDE',
+  MALLOC: 'MALLOC',
+  DEREF: 'DEREF',
 });
 
 const OPERATORS = Object.freeze({
@@ -206,6 +208,11 @@ const TTO_CUBE = Object.freeze({
     },
     [TYPES.FLOAT]: {
       [OPERATORS.PLUS]: TYPES.STRING,
+    },
+  },
+  [TYPES.OBJECT]: {
+    [TYPES.OBJECT]: {
+      [OPERATORS.ASSIGN]: TYPES.OBJECT,
     },
   },
   getType: function (typeA, typeB, operator) {

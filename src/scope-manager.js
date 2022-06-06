@@ -1,8 +1,10 @@
+const ClassScope = require('./class');
 const {
   TYPES,
   MEMORY_TYPES,
   TTO_CUBE,
   NATIVE_FUNCTIONS,
+  MEMORY_FLAGS,
 } = require('./constants');
 const CurrentFunction = require('./current-function');
 const Scope = require('./scope');
@@ -12,7 +14,23 @@ class ScopeManager {
     this.memoryManager = memoryManager;
     this.scopes = [new Scope(-1, 0)];
     this.scope = this.scopes[0];
+
+    // the current function that it's processing
     this.currentFunction = undefined;
+
+    // the current class that it's processing
+    this.currentClass = undefined;
+
+    // store the class in a dictionary
+    // {
+    //   'MyClass': Scope,
+    // }
+    this.classScopes = {};
+
+    // context means where am I relative to the alias class-wise
+    // class.function, context would be class
+    // this.function, context would be the class where this resides
+    this.context = undefined;
   }
 
   getScope(i) {
@@ -23,6 +41,10 @@ class ScopeManager {
   }
 
   getCurrentScope() {
+    if (this.context !== undefined) {
+      return this.context;
+    }
+
     return this.scope;
   }
 
@@ -75,6 +97,34 @@ class ScopeManager {
     });
   }
 
+  /**
+   * Adds an alias in the current scope pointing to an object
+   *
+   * @param {String} className The name of the object class
+   * @param {String} alias the alias of the variable
+   */
+  addClassVariableAlias(className, alias) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t declare variable ${alias}:Object (${className})`);
+    }
+    const memoryType = this.getCurrentFunction()
+      ? MEMORY_TYPES.LOCAL
+      : MEMORY_TYPES.GLOBAL;
+    scope.setAlias(alias, {
+      type: TYPES.OBJECT,
+      address: this.malloc(
+        memoryType,
+        TYPES.OBJECT,
+        1,
+        MEMORY_FLAGS.ADDRESS_REFERENCE
+      ),
+      dimensions: [],
+      alias,
+      className,
+    });
+  }
+
   addFunctionAlias(alias, type, start) {
     const scope = this.getCurrentScope();
     if (scope.getAlias(alias)) {
@@ -113,7 +163,18 @@ class ScopeManager {
       }
       scope = this.getParentScope(scope);
     }
+
     throw new Error(`Alias "${alias}": does not exists`);
+  }
+
+  findClass(className) {
+    const classObject = this.classScopes[className];
+
+    if (!classObject) {
+      throw new Error(`Class "${className}": does not exist!`);
+    }
+
+    return classObject;
   }
 
   addressDetails(address) {
@@ -135,6 +196,44 @@ class ScopeManager {
 
   pop() {
     this.scope = this.getParentScope(this.scope) ?? this.scope;
+  }
+
+  pushClass(className) {
+    if (this.classScopes[className]) {
+      throw new Error(`Class ${className} is already defined!`);
+    }
+
+    this.scope = new ClassScope(
+      this.getCurrentScope().getParent() + 1,
+      this.scopes.length,
+      className
+    );
+    this.scopes.push(this.scope);
+
+    this.classScopes[className] = this.scope;
+    this.currentClass = this.scope;
+  }
+
+  popClass() {
+    if (!this.currentClass) {
+      throw new Error('Tried to call popClass() without being inside a class');
+    }
+
+    this.scope = this.getParentScope(this.scope) ?? this.scope;
+    this.currentClass = undefined;
+  }
+
+  setContext(contextOperand) {
+    const alias = this.findAlias(contextOperand);
+    this.context = this.classScopes[alias.className];
+
+    if (!this.context) {
+      throw new Error(`${contextOperand} is not an object!`);
+    }
+  }
+
+  clearContext() {
+    this.context = undefined;
   }
 
   malloc(memoryType, dataType, size, flags) {

@@ -15,6 +15,7 @@ class IntermediateRepresentation {
     this.quadruplesManager = quadruplesManager;
     this.jumpsManager = jumpsManager;
     this.operands = new Stack();
+    this.contextStack = new Stack();
     this.currentType = undefined;
   }
 
@@ -39,11 +40,111 @@ class IntermediateRepresentation {
     }
   }
 
-  processVariableOperand(alias, dimensions) {
-    dimensions = dimensions.map(Number);
+  processId(id) {
+    this.contextStack.push(id);
+  }
+
+  processContext(contextName) {
+    const object = this.getScopeManager().findAlias(contextName, 0);
+
+    if (
+      this.contextStack.isEmpty() ||
+      typeof this.contextStack.peek() === 'string'
+    ) {
+      this.contextStack.push(object.address);
+    } else {
+      const tempAddress = this.contextStack.pop();
+      const varIndexAddr = this.pushInteger(object.variableIndex);
+
+      const pointerAddress = this.getScopeManager().malloc(
+        MEMORY_TYPES.TEMP,
+        object.type,
+        1,
+        MEMORY_FLAGS.ADDRESS_REFERENCE
+      );
+
+      this.getQuadruplesManager().pushOperator(
+        OPERATORS.PLUS,
+        tempAddress,
+        varIndexAddr,
+        pointerAddress
+      );
+
+      this.contextStack.push(pointerAddress);
+    }
+
+    this.getScopeManager().setContext(contextName);
+  }
+
+  processThisContext() {}
+
+  popContextStack(dimensions) {
+    dimensions = dimensions?.map(Number);
+    const alias = this.contextStack.pop();
+
+    if (
+      !this.contextStack.isEmpty() &&
+      typeof this.contextStack.peek() !== 'string'
+    ) {
+      const {
+        address: aliasAddress,
+        type,
+        variableIndex,
+        args,
+        ...rest
+      } = this.getScopeManager().findAlias(alias, dimensions);
+      const tempAddress = this.contextStack.pop();
+
+      // function check
+      if (args === undefined) {
+        const varIndexAddr = this.pushInteger(variableIndex);
+
+        const pointerAddress = this.getScopeManager().malloc(
+          MEMORY_TYPES.TEMP,
+          type,
+          1,
+          MEMORY_FLAGS.ADDRESS_REFERENCE
+        );
+
+        this.getQuadruplesManager().pushOperator(
+          OPERATORS.PLUS,
+          tempAddress,
+          varIndexAddr,
+          pointerAddress
+        );
+
+        this.getScopeManager().clearContext();
+        return {
+          address: pointerAddress,
+          variableIndex,
+          type,
+          args,
+          ...rest,
+        };
+      } else {
+        this.getScopeManager().clearContext();
+        return {
+          address: aliasAddress,
+          variableIndex,
+          type,
+          args,
+          ...rest,
+        };
+      }
+    } else {
+      const variable = this.getScopeManager().findAlias(alias, dimensions);
+      this.getScopeManager().clearContext();
+      return {
+        alias,
+        ...variable,
+      };
+    }
+  }
+
+  processVariableOperand(dimensions) {
     const scopeManager = this.getScopeManager();
     const quadruplesManager = this.getQuadruplesManager();
-    const variableOperand = scopeManager.findAlias(alias, dimensions);
+    const variableOperand = this.popContextStack(dimensions);
 
     if (dimensions.length === 0) {
       this.operands.push(variableOperand.address);
@@ -82,10 +183,10 @@ class IntermediateRepresentation {
     return address;
   }
 
-  processFunctionCallOperand(alias) {
+  processFunctionCallOperand() {
     const scopeManager = this.getScopeManager();
     const quadruplesManager = this.getQuadruplesManager();
-    const callable = scopeManager.findAlias(alias);
+    const callable = this.popContextStack();
     if (!callable.native) {
       quadruplesManager.pushAir();
     }
@@ -99,7 +200,7 @@ class IntermediateRepresentation {
     }
     if (callable.native) {
       quadruplesManager.pushNativeCall(
-        alias,
+        callable.alias,
         callable.address !== undefined ? callable.address : null
       );
     } else {
@@ -114,7 +215,12 @@ class IntermediateRepresentation {
 
   popAddress() {
     const operand = this.operands.pop();
-    if (operand & MEMORY_FLAGS.ADDRESS_REFERENCE) {
+    // ignore object pointers
+    // only dereference non object pointer
+    if (
+      operand & MEMORY_FLAGS.ADDRESS_REFERENCE &&
+      this.getScopeManager().addressDetails(operand).type !== TYPES.OBJECT
+    ) {
       const arrAddress = this.operands.pop();
       const address = this.getScopeManager().malloc(
         MEMORY_TYPES.TEMP,
@@ -140,7 +246,12 @@ class IntermediateRepresentation {
       scopeManager.addressDetails(rightOperand).type,
       operator
     );
-    if (address & MEMORY_FLAGS.ADDRESS_REFERENCE) {
+
+    // dont use ASTORE for objects
+    if (
+      address & MEMORY_FLAGS.ADDRESS_REFERENCE &&
+      this.getScopeManager().addressDetails(leftOperand).type !== TYPES.OBJECT
+    ) {
       quadruplesManager.pushQuadruple([
         OPCODES.ASTORE,
         this.operands.pop(),
@@ -178,11 +289,58 @@ class IntermediateRepresentation {
   }
 
   processArgument(alias, type, dimensions) {
+    console.log(alias, type);
     this.getScopeManager().addArgumentAlias(alias, type, dimensions);
   }
 
   processVariable(alias, type, dimensions) {
     this.getScopeManager().addVariableAlias(alias, type, dimensions);
+  }
+
+  processClassVariable(alias) {
+    this.getScopeManager().addClassVariableAlias(this.currentObjectType, alias);
+  }
+
+  processObjectCreationOperand() {
+    // [MALLOC, (# class variables), null, variablePointer]
+    // call constructor
+
+    const scopeManager = this.getScopeManager();
+    const quadruplesManager = this.getQuadruplesManager();
+    const objectClass = scopeManager.findClass(this.contextStack.pop());
+    scopeManager.clearContext();
+
+    // temp address pointer
+    const address = scopeManager.malloc(
+      MEMORY_TYPES.TEMP,
+      TYPES.OBJECT,
+      1,
+      MEMORY_FLAGS.ADDRESS_REFERENCE
+    );
+    quadruplesManager.pushMalloc(objectClass.getMemorySize(), address);
+
+    const classConstructor = objectClass.constructor;
+
+    if (classConstructor) {
+      // ERA
+      quadruplesManager.pushAir();
+
+      // pop constructor params
+      for (const { address } of classConstructor.args) {
+        const operand = this.popAddress();
+        quadruplesManager.pushParam(operand, address);
+      }
+
+      // call constructor
+      quadruplesManager.pushCall(classConstructor.start);
+    }
+
+    // push pointer
+    this.operands.push(address);
+  }
+
+  processClass(className) {
+    this.getScopeManager().pushClass(className);
   }
 
   processFunction(alias, type) {
@@ -256,7 +414,7 @@ class IntermediateRepresentation {
     const quadruples = this.getQuadruplesManager().getQuadruples();
     const memoryManager = this.getScopeManager().getMemoryManager();
     return quadruples.map(([op, lop, rop, rrop]) => {
-      if (OPERANDS[op] || op === OPCODES.ASTORE || op === OPCODES.ALOAD) {
+      if (OPERANDS[op]) {
         return [
           op,
           memoryManager.getAddressDebug(lop),
@@ -273,6 +431,14 @@ class IntermediateRepresentation {
       }
       if (op === OPCODES.GOTO_F || op === OPCODES.GOTO_T) {
         return [op, memoryManager.getAddressDebug(lop), rop, rrop];
+      }
+      if (op === OPCODES.ASTORE || op === OPCODES.ALOAD) {
+        return [
+          op,
+          lop,
+          memoryManager.getAddressDebug(rop),
+          memoryManager.getAddressDebug(rrop),
+        ];
       }
       if (
         op === OPCODES.STORE ||
