@@ -325,18 +325,19 @@ params:
 
 params_1: /* empty */
     |
-    type_s ID params_2 {
+    params_2 params_3;
+
+params_2:
+    type_s ID {
         yy.ir.processArgument($2, yy.ir.currentType, []);
     } |
-    type_c ID params_2 {
+    type_c ID {
         yy.ir.processArgument($2, yy.ir.currentType, []);
     };
 
-params_2: /* empty */
+params_3: /* EMPTY */
     |
-    COMMA type_s ID params_2 {
-        yy.ir.processArgument($3, yy.ir.currentType, []);
-    };
+    COMMA params_2;
 
 function:
     FUNC function_1 @push_scope params block @close_function @pop_scope;
