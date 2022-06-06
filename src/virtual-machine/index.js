@@ -146,7 +146,7 @@ class VirtualMachine {
   }
 
   handleEra() {
-    this.memory.era(this.ip);
+    this.memory.era();
   }
 
   handleCall(_l, _r, quad) {

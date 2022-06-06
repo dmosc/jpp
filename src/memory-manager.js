@@ -77,7 +77,6 @@ class MemoryManager {
       })
     );
     this.memoryStack.push(this.previousMemory);
-
     this.eraTypes.forEach((type) => {
       const scopeIndex = this.scopeLookup[type];
       const scopeBits = scopeIndex << 3;
