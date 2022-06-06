@@ -7,6 +7,8 @@ class Node {
     func void addNode(int n) {
         var Node curr;
         curr = this;
+        this.value = 1;
+        write(curr.value + 1);
 
         while (curr.hasNext == 1) {
             curr = curr.next;

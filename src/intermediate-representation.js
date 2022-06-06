@@ -379,10 +379,21 @@ class IntermediateRepresentation {
       // ERA
       quadruplesManager.pushAir();
 
-      // pop constructor params
-      for (const { address } of classConstructor.args) {
+      const argumentOperands = new Stack();
+      const argLength = classConstructor.args.length - 1;
+      for (let i = 0; i < argLength; i++) {
         const operand = this.popAddress();
-        quadruplesManager.pushParam(operand, address);
+        argumentOperands.push(operand);
+      }
+
+      // pass params to constructor
+      for (const { alias, address: argAddress } of classConstructor.args) {
+        if (alias === 'this') {
+          quadruplesManager.pushParam(address, argAddress);
+        } else {
+          const operand = argumentOperands.pop();
+          quadruplesManager.pushParam(operand, argAddress);
+        }
       }
 
       // call constructor
