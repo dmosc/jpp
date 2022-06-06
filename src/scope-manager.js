@@ -164,8 +164,6 @@ class ScopeManager {
       scope = this.getParentScope(scope);
     }
 
-    console.log(this.scopes);
-    console.log(this.context);
     throw new Error(`Alias "${alias}": does not exists`);
   }
 
@@ -228,6 +226,7 @@ class ScopeManager {
   setContext(contextOperand) {
     const alias = this.findAlias(contextOperand);
     this.context = this.classScopes[alias.className];
+
     if (!this.context) {
       throw new Error(`${contextOperand} is not an object!`);
     }

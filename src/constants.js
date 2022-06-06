@@ -40,6 +40,7 @@ const OPCODES = Object.freeze({
   IDIVIDE: 'IDIVIDE',
   FDIVIDE: 'FDIVIDE',
   MALLOC: 'MALLOC',
+  DEREF: 'DEREF',
 });
 
 const OPERATORS = Object.freeze({
