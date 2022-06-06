@@ -1,9 +1,11 @@
+import("libs/io.jpp")
+
 class Point {
     var int x, y;
 
     construct(int _x, int _y) {
-        x = _x;
-        y = _y;
+        this.x = _x;
+        this.y = _y;
     }
 
     destruct() {
@@ -11,11 +13,11 @@ class Point {
     }
 
     func int getX() {
-        return x;
+        return this.x;
     }
 
     func int getY() {
-        return y;
+        return this.y;
     }
 }
 

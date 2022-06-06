@@ -101,6 +101,7 @@
 "var"                  { return "VAR"; }
 "native"               { return "NATIVE"; }
 "import"               { return "IMPORT"; }
+"this"                 { return "THIS"; }
 
 ("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
@@ -368,6 +369,8 @@ variable_declare:
     };
 
 variable:
+    ID DOT variable |
+    THIS DOT variable |
     ID {
         yy.ir.processVariableOperand($1, []);
     } |
@@ -445,16 +448,14 @@ while_loop:
     WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @link_jump_down @link_jump_up;
 
 function_call:
-    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
+    ID DOT function_call |
+    THIS DOT function_call |
+    ID OPEN_PARENTHESIS CLOSE_PARENTHESIS {
         yy.ir.processFunctionCallOperand($1);
     } |
-    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
+    ID OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
         yy.ir.processFunctionCallOperand($1);
     };
-
-function_call_1: /* empty */
-    |
-    DOT ID;
 
 function_call_2: /* empty */
     |
@@ -462,15 +463,10 @@ function_call_2: /* empty */
 
 statement:
     vars |
-    assign SEMICOLON |
-    /*
-    handle this as native function calls
-    read |
-    write |
-    */
     condition |
     while_loop |
     for_loop |
+    assign SEMICOLON |
     function_call SEMICOLON |
     RETURN expression SEMICOLON {
         yy.ir.insertReturn();
