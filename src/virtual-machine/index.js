@@ -56,6 +56,7 @@ class VirtualMachine {
       [OPCODES.RETURN]: this.handleReturn.bind(this),
       [OPCODES.CALL]: this.handleCall.bind(this),
       [OPCODES.NCALL]: this.handleNative.bind(this),
+      [OPCODES.MALLOC]: this.handleMalloc.bind(this),
       [OPCODES.INIT]: () => {},
       ...Object.assign(...operators),
       [OPCODES.IDIVIDE]: (lop, rop, resOp) => {
@@ -147,6 +148,10 @@ class VirtualMachine {
 
   handleEra() {
     this.memory.era(this.ip);
+  }
+
+  handleMalloc(size, _r, pointerAddress) {
+    this.memory.setValue(pointerAddress, this.memory.malloc(size));
   }
 
   handleCall(_l, _r, quad) {

@@ -36,6 +36,7 @@ const OPCODES = Object.freeze({
   EXIT: 'EXIT',
   PARAM: 'PARAM',
   NCALL: 'NCALL',
+  MALLOC: 'MALLOC',
   NPARAM: 'NPARAM',
   IDIVIDE: 'IDIVIDE',
   FDIVIDE: 'FDIVIDE',
