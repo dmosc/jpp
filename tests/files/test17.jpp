@@ -19,7 +19,21 @@ class Point {
 
 program TEST_3 {
     var Point p1;
+    write("Crating point p1");
     p1 = new Point(1, 3);
-    write("x: " + p1.getX());
-    write("y: " + p1.getY());
+    write("p1(x): " + p1.getX());
+    write("p1(y): " + p1.getY());
+
+    write("----");
+    write("Crating point p2");
+    var Point p2;
+    p2 = new Point(5, 8);
+    write("p2(x): " + p2.getX());
+    write("p2(y): " + p2.getY());
+    
+    write("----");
+    write("Verifying p1 hasn't changed");
+    write("p1(x): " + p1.getX());
+    write("p1(y): " + p1.getY());
+
 }

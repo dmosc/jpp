@@ -244,9 +244,11 @@ class ScopeManager {
     this.currentClass = this.scope;
   }
 
-  popClass() {
+  closeClass() {
     if (!this.currentClass) {
-      throw new Error('Tried to call popClass() without being inside a class');
+      throw new Error(
+        'Tried to call closeClass() without being inside a class'
+      );
     }
 
     this.scope = this.getParentScope(this.scope) ?? this.scope;

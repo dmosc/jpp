@@ -285,6 +285,10 @@ const_type:
     yy.ir.processFunction("construct", 'VOID');
 };
 
+@close_class: {
+    yy.ir.scopeManager.closeClass();
+};
+
 program:
     program_imports program_1 program_init @push_scope block @pop_scope {
         yy.ir.insertExit();
@@ -407,7 +411,7 @@ vars_2: /* empty */
     COMMA ID vars_2;
 
 class:
-    CLASS class_name class_1 class_block @pop_scope;
+    CLASS class_name class_1 class_block @pop_scope @close_class;
 
 class_name:
     ID  {
