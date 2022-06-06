@@ -53,6 +53,10 @@ class QuadruplesManager {
     this.pushQuadruple([OPCODES.STORE, value, null, address]);
   }
 
+  pushMalloc(size, address) {
+    this.pushQuadruple([OPCODES.MALLOC, size, null, address]);
+  }
+
   pushParam(value, address) {
     this.pushQuadruple([OPCODES.PARAM, value, null, address]);
   }

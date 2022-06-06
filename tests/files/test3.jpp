@@ -1,9 +1,11 @@
+import("libs/io.jpp")
+
 class Point {
     var int x, y;
 
     construct(int _x, int _y) {
-        x = _x;
-        y = _y;
+        this.x = _x;
+        this.y = _y;
     }
 
     destruct() {
@@ -20,7 +22,9 @@ class Point {
 }
 
 program TEST_3 {
-    var Point p1, p2;
-    p1 = Point(1, 2);
+    var Point p1;
+    var Point p2;
+    p1 = new Point(1, 3);
+    p2 = new Point(1, p1.getX());
     write(p1.getX());
 }
