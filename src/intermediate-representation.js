@@ -41,7 +41,6 @@ class IntermediateRepresentation {
   }
 
   processId(id) {
-    console.log('PUSHING ', id);
     this.contextStack.push(id);
   }
 
