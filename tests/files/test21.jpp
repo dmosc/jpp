@@ -1,0 +1,39 @@
+import("libs/io.jpp")
+
+class Node {
+    var int value, hasNext;
+    var Node next;
+}
+
+func void addNode(Node root, int n) {
+    var Node curr;
+    curr = root;
+
+    while (curr.hasNext == 1) {
+        curr = curr.next;
+    }
+
+    curr.next = new Node();
+    curr.next.value = n;
+    curr.hasNext = 1;
+}
+
+program TEST_3 {
+    var Node root;
+    root = new Node();
+    root.value = 0-1;
+   
+    addNode(root, 1);
+    addNode(root, 5);
+    addNode(root, 8);
+
+    var Node curr;
+    curr = root;
+
+    while (curr.hasNext == 1) {
+        write(curr.value);
+        curr = curr.next;
+    }
+    
+    write(curr.value);
+}

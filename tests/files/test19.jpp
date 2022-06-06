@@ -1,7 +1,8 @@
 import ("libs/io.jpp")
 
-func void test(string b, int a) {
-    write(a + b);
+func void test(int a, string b) {
+    write("A: " + a);
+    write("B: " + b);
 }
 
 program Test {

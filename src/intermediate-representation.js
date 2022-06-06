@@ -190,8 +190,15 @@ class IntermediateRepresentation {
     if (!callable.native) {
       quadruplesManager.pushAir();
     }
-    for (const { address } of callable.args) {
+
+    const argumentOperands = new Stack();
+    for (let i = 0; i < callable.args.length; i++) {
       const operand = this.popAddress();
+      argumentOperands.push(operand);
+    }
+
+    for (const { address } of callable.args) {
+      const operand = argumentOperands.pop();
       if (callable.native) {
         quadruplesManager.pushNativeParam(operand, address);
       } else {
