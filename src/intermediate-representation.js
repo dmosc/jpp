@@ -289,7 +289,6 @@ class IntermediateRepresentation {
   }
 
   processArgument(alias, type, dimensions) {
-    console.log(alias, type);
     this.getScopeManager().addArgumentAlias(alias, type, dimensions);
   }
 

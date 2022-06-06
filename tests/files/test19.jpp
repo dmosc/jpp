@@ -1,0 +1,9 @@
+import ("libs/io.jpp")
+
+func void test(string b, int a) {
+    write(a + b);
+}
+
+program Test {
+    test(1, "hello");
+}
