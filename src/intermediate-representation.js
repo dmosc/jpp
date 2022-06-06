@@ -125,6 +125,7 @@ class IntermediateRepresentation {
         this.getScopeManager().clearContext();
         return {
           address: aliasAddress,
+          contextAddress: tempAddress,
           variableIndex,
           type,
           args,
@@ -132,8 +133,23 @@ class IntermediateRepresentation {
         };
       }
     } else {
-      const variable = this.getScopeManager().findAlias(alias, dimensions);
+      /*
+        If we get to here it means that an identifier was pushed into the stack
+        and below the stack is another identifier with a context
+        Example:
+        root.addNode(root, 1);
+
+        stack will have the context address for root.addNote then it will reach
+        to (root, 1) and root must be in a cleared context. So what we need to
+        do is temporarily clear the the context, find alias and then set the
+        context back to the original one.
+      */
+
+      const tempContext = this.getScopeManager().getCurrentContext();
       this.getScopeManager().clearContext();
+
+      const variable = this.getScopeManager().findAlias(alias, dimensions);
+      this.getScopeManager().setContextObject(tempContext);
       return {
         alias,
         ...variable,
@@ -186,23 +202,30 @@ class IntermediateRepresentation {
   processFunctionCallOperand() {
     const scopeManager = this.getScopeManager();
     const quadruplesManager = this.getQuadruplesManager();
+
     const callable = this.popContextStack();
+
     if (!callable.native) {
       quadruplesManager.pushAir();
     }
 
     const argumentOperands = new Stack();
-    for (let i = 0; i < callable.args.length; i++) {
+    const argLength = callable.args.length - (callable.parentClass ? 1 : 0);
+    for (let i = 0; i < argLength; i++) {
       const operand = this.popAddress();
       argumentOperands.push(operand);
     }
 
-    for (const { address } of callable.args) {
-      const operand = argumentOperands.pop();
-      if (callable.native) {
-        quadruplesManager.pushNativeParam(operand, address);
+    for (const { alias, address } of callable.args) {
+      if (alias === 'this') {
+        quadruplesManager.pushParam(callable.contextAddress, address);
       } else {
-        quadruplesManager.pushParam(operand, address);
+        const operand = argumentOperands.pop();
+        if (callable.native) {
+          quadruplesManager.pushNativeParam(operand, address);
+        } else {
+          quadruplesManager.pushParam(operand, address);
+        }
       }
     }
     if (callable.native) {

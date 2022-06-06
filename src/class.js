@@ -1,9 +1,11 @@
+const { TYPES } = require('./constants');
 const Scope = require('./scope');
 
 class ClassScope extends Scope {
   constructor(_parent, _index, className) {
     super(_parent, _index);
     this.name = className;
+    this.isClass = true;
 
     this.variables = [
       {

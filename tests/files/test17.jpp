@@ -3,28 +3,22 @@ import("libs/io.jpp")
 class Point {
     var int x, y;
 
-    construct(int _x, int _y) {
-        this.x = _x;
-        this.y = _y;
-    }
-
-    destruct() {
-        write("Goodbye!");
+    construct(int a, int b) {
+        this.x = a;
+        this.y = b;
     }
 
     func int getX() {
-        return x;
+        return this.x;
     }
 
     func int getY() {
-        return y;
+        return this.y;
     }
 }
 
 program TEST_3 {
     var Point p1;
-    var Point p2;
     p1 = new Point(1, 3);
-    p2 = new Point(1, p1.getX());
     write(p1.getX());
 }

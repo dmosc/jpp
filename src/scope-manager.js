@@ -139,13 +139,30 @@ class ScopeManager {
     const memoryType = this.getCurrentFunction()
       ? MEMORY_TYPES.LOCAL
       : MEMORY_TYPES.GLOBAL;
-    scope.setAlias(alias, {
-      type,
-      // TODO(dmosc): Verify if malloc(...) should be conditional.
-      address: type !== TYPES.VOID ? this.malloc(memoryType, type) : undefined,
-      start,
-      args: [],
-    });
+
+    // Add implicit "this" parameter
+    if (this.currentClass !== undefined) {
+      scope.setAlias(alias, {
+        type,
+        // TODO(dmosc): Verify if malloc(...) should be conditional.
+        address:
+          type !== TYPES.VOID ? this.malloc(memoryType, type) : undefined,
+        start,
+        args: [],
+        // set the parent class
+        parentClass: this.currentClass.name,
+      });
+    } else {
+      scope.setAlias(alias, {
+        type,
+        // TODO(dmosc): Verify if malloc(...) should be conditional.
+        address:
+          type !== TYPES.VOID ? this.malloc(memoryType, type) : undefined,
+        start,
+        args: [],
+      });
+    }
+
     this.switchCurrentFunction(alias);
   }
 
@@ -200,6 +217,13 @@ class ScopeManager {
     this.scopes.push(this.scope);
   }
 
+  dummyThisParam() {
+    const currFunc = this.getCurrentFunction();
+    if (currFunc !== undefined && this.currentClass !== undefined) {
+      this.addObjectArgumentAlias(this.currentClass.name, 'this');
+    }
+  }
+
   pop() {
     this.scope = this.getParentScope(this.scope) ?? this.scope;
   }
@@ -236,6 +260,14 @@ class ScopeManager {
     if (!this.context) {
       throw new Error(`${contextOperand} is not an object!`);
     }
+  }
+
+  setContextObject(context) {
+    this.context = context;
+  }
+
+  getCurrentContext() {
+    return this.context;
   }
 
   clearContext() {

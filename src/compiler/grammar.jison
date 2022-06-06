@@ -101,7 +101,6 @@
 "var"                  { return "VAR"; }
 "native"               { return "NATIVE"; }
 "import"               { return "IMPORT"; }
-"this"                 { return "THIS"; }
 "new"                  { return "NEW"; }
 ("int"|"bool")         { return "INT"; }
 "float"                { return "FLOAT"; }
@@ -246,6 +245,10 @@ const_type:
     yy.ir.scopeManager.push();
 };
 
+@dummy_this_param: {
+    yy.ir.scopeManager.dummyThisParam();
+};
+
 @pop_scope: {
     yy.ir.scopeManager.pop();
 };
@@ -340,7 +343,7 @@ params_3: /* EMPTY */
     COMMA params_2;
 
 function:
-    FUNC function_1 @push_scope params block @close_function @pop_scope;
+    FUNC function_1 @push_scope @dummy_this_param params block @close_function @pop_scope;
 
 function_1:
     function_2 ID {
@@ -426,7 +429,7 @@ class_block_1: /* empty */
     destruct class_block_1;
 
 construct:
-    CONSTRUCT @process_constructor @push_scope params block @close_function @pop_scope;
+    CONSTRUCT @process_constructor @push_scope @dummy_this_param params block @close_function @pop_scope;
 
 destruct:
     DESTRUCT OPEN_PARENTHESIS CLOSE_PARENTHESIS block;
@@ -485,12 +488,6 @@ alias_l2:
     } |
     ID DOT {
         yy.ir.processContext($1);
-    } |
-    alias_l3;
-
-alias_l3:
-    THIS DOT {
-        yy.ir.processThisContext();
     };
 
 function_call_2: /* empty */
