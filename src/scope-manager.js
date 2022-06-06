@@ -79,6 +79,12 @@ class ScopeManager {
     this.getCurrentFunction()?.addArg(arg);
   }
 
+  addObjectArgumentAlias(className, alias) {
+    this.addClassVariableAlias(className, alias);
+    const arg = this.findAlias(alias);
+    this.getCurrentFunction()?.addArg(arg);
+  }
+
   addVariableAlias(alias, type, dimensions) {
     const scope = this.getCurrentScope();
     if (scope.getAlias(alias)) {
