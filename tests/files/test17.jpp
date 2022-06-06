@@ -1,0 +1,22 @@
+import ("libs/io.jpp")
+
+class Person {
+    var int age;
+    var string name;
+
+    construct(int _age, string _name) {
+        age = _age;
+        name = _name;
+    }
+
+    func void sayHi() {
+        write("Hello my name is " + name + ". I'm " + age + " years old");
+    }
+}
+
+program ObjectPerson {
+    var Person p1;
+    p1.age = 25;
+    p1.name = "John Appleseed";
+    p1.sayHi();
+}

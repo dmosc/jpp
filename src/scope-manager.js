@@ -6,6 +6,7 @@ const {
 } = require('./constants');
 const CurrentFunction = require('./current-function');
 const Scope = require('./scope');
+const CurrentClass = require('./current-class');
 
 class ScopeManager {
   constructor(memoryManager) {
@@ -13,6 +14,7 @@ class ScopeManager {
     this.scopes = [new Scope(-1, 0)];
     this.scope = this.scopes[0];
     this.currentFunction = undefined;
+    this.currentClass = undefined;
   }
 
   getScope(i) {
@@ -39,6 +41,10 @@ class ScopeManager {
     return this.currentFunction;
   }
 
+  getCurrentClass() {
+    return this.currentClass;
+  }
+
   getMemoryManager() {
     return this.memoryManager;
   }
@@ -48,6 +54,17 @@ class ScopeManager {
       this.currentFunction = undefined;
     } else {
       this.currentFunction = new CurrentFunction(this.findAlias(alias));
+      if (this.currentClass) {
+        this.currentClass.addAlias(alias, this.currentFunction);
+      }
+    }
+  }
+
+  switchCurrentClass(alias = undefined) {
+    if (!alias) {
+      this.currentClass = undefined;
+    } else {
+      this.currentClass = new CurrentClass(alias, this.findAlias(alias));
     }
   }
 
@@ -59,20 +76,27 @@ class ScopeManager {
 
   addVariableAlias(alias, type, dimensions) {
     const scope = this.getCurrentScope();
+    const currentClass = this.getCurrentClass();
     if (scope.getAlias(alias)) {
       throw new Error(`Can\'t declare variable ${alias}:${type}`);
     }
     dimensions = dimensions.map(Number);
     const size = dimensions.reduce((size, dimension) => size * dimension, 1);
-    const memoryType = this.getCurrentFunction()
-      ? MEMORY_TYPES.LOCAL
-      : MEMORY_TYPES.GLOBAL;
-    scope.setAlias(alias, {
+    const memoryType =
+      this.getCurrentFunction() || currentClass
+        ? MEMORY_TYPES.LOCAL
+        : MEMORY_TYPES.GLOBAL;
+    let value = {
       type,
       address: this.malloc(memoryType, type, size),
       dimensions,
       alias,
-    });
+    };
+    if (currentClass) {
+      value.classAlias = currentClass.getId();
+      currentClass.addAlias(alias);
+    }
+    scope.setAlias(alias, value);
   }
 
   addFunctionAlias(alias, type, start) {
@@ -80,13 +104,54 @@ class ScopeManager {
     if (scope.getAlias(alias)) {
       throw new Error(`Can\'t declare function ${alias}:${type}`);
     }
-    const memoryType = this.getCurrentFunction()
-      ? MEMORY_TYPES.LOCAL
-      : MEMORY_TYPES.GLOBAL;
+    const memoryType =
+      this.getCurrentFunction() || this.getCurrentClass()
+        ? MEMORY_TYPES.LOCAL
+        : MEMORY_TYPES.GLOBAL;
     scope.setAlias(alias, {
       type,
       // TODO(dmosc): Verify if malloc(...) should be conditional.
       address: type !== TYPES.VOID ? this.malloc(memoryType, type) : undefined,
+      start,
+      args: [],
+    });
+    this.switchCurrentFunction(alias);
+  }
+
+  addClassAlias(alias) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t instantiate class: ${alias}`);
+    }
+    scope.setAlias(alias, {
+      alias,
+      aliases: {},
+    });
+    this.switchCurrentClass(alias);
+  }
+
+  addClassVariableAlias(alias, type, dimensions) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t declare variable ${alias}:${type}`);
+    }
+    dimensions = dimensions.map(Number);
+    this.getCurrentClass()?.addAlias(alias, {
+      type,
+      address: null,
+      dimensions,
+      alias,
+    });
+  }
+
+  addClassMethodAlias(alias, type, start) {
+    const scope = this.getCurrentScope();
+    if (scope.getAlias(alias)) {
+      throw new Error(`Can\'t declare variable ${alias}:${type}`);
+    }
+    this.getCurrentClass()?.addAlias(alias, {
+      type,
+      address: null,
       start,
       args: [],
     });

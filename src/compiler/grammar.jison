@@ -93,7 +93,7 @@
 "while"                { return "WHILE"; }
 "class"                { return "CLASS"; }
 "extends"              { return "EXTENDS"; }
-"construct"            { return "CONSTRUCT"; }
+"construct"            { yy.ir.processFunction("construct", "VOID"); return "CONSTRUCT"; }
 "destruct"             { return "DESTRUCT"; }
 "void"                 { return "VOID"; }
 "program"              { return "PROGRAM"; }
@@ -191,7 +191,10 @@ type_s:
     };
 
 type_c:
-    ID;
+    ID {
+        yy.ir.currentClass = $1;
+        yy.ir.currentType = yy.constants.TYPES.OBJECT;
+    };
 
 /* CONST */
 const_type:
@@ -274,6 +277,9 @@ const_type:
     yy.ir.closeFunction();
 };
 
+@close_class: {
+    yy.ir.closeClass();
+};
 
 program:
     program_imports program_1 program_init @push_scope block @pop_scope {
@@ -356,17 +362,6 @@ native_function_2:
     type_s |
     VOID;
 
-variable_declare:
-    ID {
-        yy.ir.processVariable($1, yy.ir.currentType, []);
-    } |
-    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
-        yy.ir.processVariable($1, yy.ir.currentType, [$3]);
-    } |
-    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
-        yy.ir.processVariable($1, yy.ir.currentType, [$3, $6]);
-    };
-
 variable:
     ID {
         yy.ir.processVariableOperand($1, []);
@@ -378,27 +373,48 @@ variable:
         yy.ir.processVariableOperand($1, [$3, $6]);
     };
 
+type_s_vars:
+    ID {
+        yy.ir.processVariable($1, yy.ir.currentType, []);
+    } |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
+        yy.ir.processVariable($1, yy.ir.currentType, [$3]);
+    } |
+    ID OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET OPEN_SQUARE_BRACKET CONST_INT CLOSE_SQUARE_BRACKET {
+        yy.ir.processVariable($1, yy.ir.currentType, [$3, $6]);
+    };
+
+type_c_vars:
+    ID {
+        yy.ir.processVariable($1, yy.ir.currentType, []);
+    };
+
 vars:
-    VAR type_s variable_declare vars_1 SEMICOLON |
-    VAR type_c ID vars_2 SEMICOLON;
+    VAR type_s type_s_vars vars_1 SEMICOLON |
+    VAR type_c type_c_vars vars_2 SEMICOLON {
+        yy.ir.currentClass = undefined;
+    };
 
 vars_1: /* empty */
     |
-    COMMA variable_declare vars_1;
+    COMMA type_s_vars vars_1;
 
 vars_2: /* empty */
     |
-    COMMA ID vars_2;
+    COMMA type_c_vars vars_2;
 
 class:
-    CLASS ID class_1 class_block;
+    class_declare @push_scope class_block @pop_scope @close_class;
 
-class_1: /* empty */
-    |
-    EXTENDS ID;
+class_declare:
+    CLASS ID {
+        yy.ir.processClass($2);
+    };
 
 class_block:
-    OPEN_CURLY_BRACKET class_block_1 CLOSE_CURLY_BRACKET;
+    OPEN_CURLY_BRACKET class_block_1 CLOSE_CURLY_BRACKET {
+        yy.ir.currentClass = undefined;
+    };
 
 class_block_1: /* empty */
     |
@@ -415,6 +431,9 @@ destruct:
 
 assign:
     variable assignment_op_l1 expression {
+        yy.ir.processAssignment($2);
+    } |
+    attribute_access assignment_op_l1 expression {
         yy.ir.processAssignment($2);
     };
 
@@ -445,20 +464,22 @@ while_loop:
     WHILE @push_jump OPEN_PARENTHESIS expression CLOSE_PARENTHESIS @push_jump @goto_f @push_scope block @pop_scope @goto @link_jump_down @link_jump_up;
 
 function_call:
-    ID function_call_1 OPEN_PARENTHESIS CLOSE_PARENTHESIS {
+    ID OPEN_PARENTHESIS CLOSE_PARENTHESIS {
         yy.ir.processFunctionCallOperand($1);
     } |
-    ID function_call_1 OPEN_PARENTHESIS expression function_call_2 CLOSE_PARENTHESIS {
+    ID OPEN_PARENTHESIS expression function_call_1 CLOSE_PARENTHESIS {
         yy.ir.processFunctionCallOperand($1);
     };
 
 function_call_1: /* empty */
     |
-    DOT ID;
+    COMMA expression function_call_1;
 
-function_call_2: /* empty */
-    |
-    COMMA expression function_call_2;
+method_call:
+    variable DOT function_call @pop_scope;
+
+attribute_access:
+  variable DOT variable @pop_scope;
 
 statement:
     vars |
@@ -472,6 +493,8 @@ statement:
     while_loop |
     for_loop |
     function_call SEMICOLON |
+    method_call SEMICOLON |
+    attribute_access SEMICOLON |
     RETURN expression SEMICOLON {
         yy.ir.insertReturn();
     } |
@@ -551,5 +574,7 @@ expression_l10:
 expression_l11:
     OPEN_PARENTHESIS expression CLOSE_PARENTHESIS |
     function_call |
+    method_call |
+    attribute_access |
     const_type |
     variable;

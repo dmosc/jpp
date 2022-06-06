@@ -8,6 +8,7 @@ const {
   TTO_CUBE,
 } = require('./constants');
 const { Stack } = require('datastructures-js');
+const Scope = require('./scope');
 
 class IntermediateRepresentation {
   constructor(scopeManager, quadruplesManager, jumpsManager) {
@@ -16,6 +17,7 @@ class IntermediateRepresentation {
     this.jumpsManager = jumpsManager;
     this.operands = new Stack();
     this.currentType = undefined;
+    this.currentClass = undefined;
   }
 
   getScopeManager() {
@@ -44,6 +46,19 @@ class IntermediateRepresentation {
     const scopeManager = this.getScopeManager();
     const quadruplesManager = this.getQuadruplesManager();
     const variableOperand = scopeManager.findAlias(alias, dimensions);
+
+    if (variableOperand.classAlias) {
+      const classAlias = scopeManager.findAlias(variableOperand.classAlias);
+      scopeManager.push();
+      console.log(classAlias.aliases);
+      Object.keys(classAlias.aliases).map((key) => {
+        const value = classAlias.aliases[key]?.target
+          ? classAlias.aliases[key]?.target
+          : classAlias.aliases[key];
+        scopeManager.getCurrentScope().setAlias(key, value);
+      });
+      console.log(scopeManager.getCurrentScope());
+    }
 
     if (dimensions.length === 0) {
       this.operands.push(variableOperand.address);
@@ -182,7 +197,12 @@ class IntermediateRepresentation {
   }
 
   processVariable(alias, type, dimensions) {
-    this.getScopeManager().addVariableAlias(alias, type, dimensions);
+    this.getScopeManager().addVariableAlias(
+      alias,
+      type,
+      dimensions,
+      this.currentClass
+    );
   }
 
   processFunction(alias, type) {
@@ -201,6 +221,12 @@ class IntermediateRepresentation {
     this.getScopeManager().findAlias(alias).native = true;
   }
 
+  processClass(alias) {
+    const scopeManager = this.getScopeManager();
+    scopeManager.addClassAlias(alias);
+    scopeManager.switchCurrentClass(alias);
+  }
+
   closeFunction() {
     const scopeManager = this.getScopeManager();
     if (
@@ -210,6 +236,12 @@ class IntermediateRepresentation {
       this.getQuadruplesManager().pushReturn();
     }
     scopeManager.switchCurrentFunction(); // Unset current function.
+    scopeManager.resetLocalMemory();
+  }
+
+  closeClass() {
+    const scopeManager = this.getScopeManager();
+    scopeManager.switchCurrentClass(); // Unset current class.
     scopeManager.resetLocalMemory();
   }
 
