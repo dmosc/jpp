@@ -5,7 +5,19 @@ most major modern languages offer like: **arithmetic expressions**, **native ite
 **module creation and imports**, etc. Additionally, during intermediate code generation, 
 J++ implements code optimization strategies to compress object code output and improve execution times.
 
+## Run
+Run the following command to compile and run a project
+
+```
+yarn compile -[d,p,r] [path/to/file].jpp
+
+-d: Log intermediate code representation in console.
+-p: Combine with -d to debug addresses.
+-r: Run after compiling project.
+```
+
 ## Getting started
+
 ```
 import("lib/io.jpp") // Load read and write functions. //
 
