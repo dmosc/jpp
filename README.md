@@ -86,3 +86,34 @@ program BinarySearch {
     }
 }
 ```
+
+### Objects
+This is how you can instantiate objects in J++ and use them in your
+program.
+```
+import("libs/io.jpp")
+
+class Point {
+    var int x, y;
+
+    construct(int a, int b) {
+        this.x = a;
+        this.y = b;
+    }
+
+    func int getX() {
+        return this.x;
+    }
+
+    func int getY() {
+        return this.y;
+    }
+}
+
+program Objects {
+    var Point p1;
+    p1 = new Point(1, 3);
+    write("p1(x): " + p1.getX());
+    write("p1(y): " + p1.getY());
+}
+```
