@@ -1,3 +1,7 @@
+/*
+  File containing global shared constants and Javascript mapped functions
+  to perform the concrete computations during execution.
+*/
 const WriteFunction = require('./native/io/write');
 const ClearConsoleFunction = require('./native/io/clear_console');
 const CursorHomeFunction = require('./native/io/cursor_home');

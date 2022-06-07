@@ -1,3 +1,8 @@
+/*
+  The JumpsManager class purpose is to handle the jump stack used during the
+  intermediate code generation to remember previous points of interest relevant
+  to cycles, functions, conditional logic, etc.
+*/
 const { Stack } = require('datastructures-js');
 
 class JumpsManager {

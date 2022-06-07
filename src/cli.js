@@ -1,3 +1,10 @@
+/*
+  Custom command line interface built to pass flags to the J++ compiler and output
+  multiple useful data payloads during development.
+
+  It can be run as: yarn start -[d,p,r] path/to/file.
+*/
+
 const { readFileSync } = require('fs');
 const { createNewParser } = require('./compiler');
 const { program } = require('commander');

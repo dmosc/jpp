@@ -1,3 +1,7 @@
+/*
+  The CurrentFunction class is tailored to handle function declarations and keep
+  track of its state (arguments, location, etc.).
+*/
 const { TYPES } = require('./constants');
 
 class CurrentFunction {

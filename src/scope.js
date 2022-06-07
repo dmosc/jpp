@@ -1,3 +1,7 @@
+/*
+  The Scope class works as the ALL-table to register variables, functions, and classes.
+  It is made to register and retrieve registered ids.
+*/
 class Scope {
   constructor(_parent, _index) {
     this._index = _index;

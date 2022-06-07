@@ -1,4 +1,10 @@
-const { OPCODES, OPERATORS } = require('./constants');
+/*
+  The QuadruplesManager serves as an abstraction layer for the IntermediateRepresentation
+  class to generate quadruples that maintain a consistent structure.
+
+  All methods specialize on generating a concrete type of quadruple.
+*/
+const { OPCODES } = require('./constants');
 const { ControlFlowGraph } = require('./optimizer/cfg-graph');
 
 class QuadruplesManager {

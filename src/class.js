@@ -1,4 +1,11 @@
-const { TYPES } = require('./constants');
+/*
+  The ClassScope is a special Scope object type tailored to handle OOP related logic.
+
+  Throughout the program it is treated as a Scope object but containing concrete strategies
+  to handle class declarations with variable and function scoping for each class.
+
+  It is constructed with a link to its wrapping scope, and the name of the class being registered.
+*/
 const Scope = require('./scope');
 
 class ClassScope extends Scope {

@@ -1,11 +1,11 @@
+/*
+  The ScopeManager manages Scope objects. It's primary purpose is to create, destroy, retrieve,
+  and switch between scopes to search for the right variables at the right place.
+
+  It handles a tree-like structure of scopes that is traversable.
+*/
 const ClassScope = require('./class');
-const {
-  TYPES,
-  MEMORY_TYPES,
-  TTO_CUBE,
-  NATIVE_FUNCTIONS,
-  MEMORY_FLAGS,
-} = require('./constants');
+const { TYPES, MEMORY_TYPES, TTO_CUBE, MEMORY_FLAGS } = require('./constants');
 const CurrentFunction = require('./current-function');
 const Scope = require('./scope');
 

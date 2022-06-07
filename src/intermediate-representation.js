@@ -1,3 +1,9 @@
+/*
+  The IntermediateRepresentation class contains all the concrete execution logic
+  for the grammar's neuralgic points. Its purpose is to map actions (such as registering
+  variable, functions, verifying existence, accessing scopes, etc.) to points of
+  interest inside the grammar.
+*/
 const {
   TYPES,
   OPERATORS,

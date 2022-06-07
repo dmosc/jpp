@@ -1,3 +1,7 @@
+/*
+  The Memory class represents a memory chunk abstraction with the capacity
+  of allocation and retrieving virtual memory addresses and keeping track of its state.
+*/
 class Memory {
   constructor(start, type) {
     this.start = start;

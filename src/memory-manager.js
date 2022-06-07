@@ -1,3 +1,10 @@
+/*
+  The MemoryManager manages Memory instances. J++ uses multiple memory flavors
+  that function as segments to store specific types of data.
+
+  It contains methods for address allocation and retrieval, as well as memory
+  flushing and memory freezing.
+*/
 const { Stack } = require('datastructures-js');
 const { MEMORY_TYPES, TYPES, MEMORY_FLAGS } = require('./constants');
 const Memory = require('./memory');
