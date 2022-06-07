@@ -1,0 +1,26 @@
+import("libs/io.jpp")
+
+class Person {
+    var string name;
+    var Person friend;
+
+    construct(string name) {
+        this.name = name;
+    }
+
+    func void setName(string name) {
+        this.name = name;
+    }
+}
+
+program TEST_3 {
+    var Person pato;
+    var Person oscar;
+    pato = new Person("Pato");
+    write(pato.name);
+    pato.setName("Pato2");
+    write(pato.name);
+
+    pato.friend = new Person("Oscar");
+    write(pato.friend.name);
+}

@@ -1,3 +1,12 @@
+/*
+  The VirtualMachine object is responsible for managing, traversing and executing
+  the generated intermediate code.
+
+  The constructor receives an IntermediateCodeManager containing the generated quadruples.
+
+  All the methods from the VirtualMachine are focused on resolving concrete opcodes
+  defined in the constants.js file.
+*/
 const { Stack } = require('datastructures-js');
 const {
   OPCODES,

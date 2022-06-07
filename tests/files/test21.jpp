@@ -8,25 +8,20 @@ class Node {
         var Node curr;
         curr = this;
         this.value = 1;
-        write(curr.value + 1);
-
         while (curr.hasNext == 1) {
             curr = curr.next;
         }
-
         curr.next = new Node();
         curr.next.value = n;
         curr.hasNext = 1;
     }
 }
 
-
 program TEST_3 {
     var Node root;
     root = new Node();
     root.value = 0-1;
 
-   
     root.addNode(1);
     root.addNode(5);
     root.addNode(8);
@@ -38,9 +33,5 @@ program TEST_3 {
         write(curr.value);
         curr = curr.next;
     }
-    
     write(curr.value);
-
-    
-    write(root.next.next.next.value);
 }

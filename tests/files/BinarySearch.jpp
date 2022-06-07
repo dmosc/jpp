@@ -12,9 +12,9 @@ program BinarySearch {
 
     k = str_to_int(read("Search for value: "));
     left = 0;
-    right = 10;
+    right = 9;
     found = false;
-    while (left < right && !found) {
+    while (left <= right && !found) {
         middle = (left + right) / 2;
         write(middle);
         if (arr[middle] == k) {
